@@ -42,7 +42,7 @@ class OBSClient {
     _prefix = '$mIDprefix${uuid.v4().substring(0, 8)}::';
   }
 
-  Future<void> _connect(Uri uri, {String? password}) {
+  Future<OBSClient> _connect(Uri uri, {String? password}) {
     this.close();
     this._init();
 
@@ -80,7 +80,7 @@ class OBSClient {
     });
 
     return this.request(command: "GetAuthRequired").then((r) async {
-      if (!r["authRequired"]) return;
+      if (!r["authRequired"]) return this;
       String challenge = r['challenge'];
       String salt = r['salt'];
       if (password == null) throw AuthException("Password required");
@@ -89,24 +89,24 @@ class OBSClient {
       var response = await this
           .request(command: "Authenticate", params: {"auth": chalResponse});
       if (response["status"] != 'ok') throw AuthException(response["error"]);
-      return;
+      return this;
     });
   }
 
   dynamic get serverCapabilities => this._serverCapabilities;
 
-  Future<void> connect(
+  Future<OBSClient> connect(
       {required String host, required int port, String? password}) {
     Uri? uri = Uri.tryParse('ws://$host:$port');
     if (uri == null) throw Exception("Invalid URI");
     return this._connect(uri, password: password);
   }
 
-  Future<void> connectURI(Uri uri, {String? password}) {
+  Future<OBSClient> connectURI(Uri uri, {String? password}) {
     return this._connect(uri, password: password);
   }
 
-  Future<void> connectObject(ConnectionSettings settings) {
+  Future<OBSClient> connectObject(ConnectionSettings settings) {
     return this.connect(
         host: settings.host, port: settings.port, password: settings.password);
   }
