@@ -3,6 +3,24 @@ https://flutter.dev/docs/cookbook/navigation/returning-data
 
 Navigator.push(...), Navigator.pop()
 
+() {
 
+}
+
+() => {
+    // has to return something
+}
 
 Can't method overload
+
+
+
+TakeSourceScreenshot
+
+nosleep?
+
+keyboard input
+
+aux
+
+preview
