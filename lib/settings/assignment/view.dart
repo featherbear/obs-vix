@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:obs_vix/VIXState.dart';
 
 typedef SceneOrder = List<String?>;
 typedef CallbackType = void Function(SceneOrder);
@@ -22,6 +23,8 @@ class _SettingsAssignmentState extends State<SettingsAssignment> {
 
   @override
   Widget build(BuildContext context) {
+    final VIX = getState(context);
+
     return new Container(
       child: new Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -38,10 +41,9 @@ class _SettingsAssignmentState extends State<SettingsAssignment> {
                               new DropdownButton(
                                 value: entry.value,
                                 hint: Text("Select scene"),
-                                items: [
-                                  '',
-                                  ...['a', 'b']
-                                ].map((e) {
+                                items: ['', ...(VIX["scenes"] ?? [])]
+                                    .cast<String>()
+                                    .map((e) {
                                   return DropdownMenuItem(
                                       value: e,
                                       child: Text(e.isNotEmpty ? e : "(none)"));

@@ -1,5 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:obs_vix/OBSClient.dart';
+import 'package:obs_vix/VIXState.dart';
+import 'package:obs_vix/controls/PreviewProgramController.dart';
+import 'package:obs_vix/settings/assignment/view.dart';
+import 'package:obs_vix/settings/connection/view.dart';
+import 'package:web_socket_channel/io.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'OBS Vix - Vision Mix',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -23,7 +30,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'OBS Vix - Vision Mix'),
     );
   }
 }
@@ -60,6 +67,64 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  OBSClient client = new OBSClient()
+    // ..addRawListener((data) {
+    //   log(data);
+    // })
+    ..connect(host: 'localhost', port: 4444, password: "1234")
+        .then((client) async {
+      {
+        client.request(command: "EnableStudioMode");
+        client.request(command: "GetCurrentScene").then((data) {
+          updateState((m) {
+            m["activeProgram"] = data["name"];
+          });
+        });
+        client.request(command: "GetPreviewScene").then((data) {
+          updateState((m) {
+            m["activePreview"] = data["name"];
+          });
+        });
+      }
+
+      client.addEventListener("StudioModeSwitched", (data) async {
+        if (!data["new-state"]) client.request(command: "EnableStudioMode");
+      });
+
+      client.addEventListener("SwitchScenes", (data) async {
+        updateState((m) {
+          m["activeProgram"] = data["scene-name"];
+        });
+      });
+
+      client.addEventListener("PreviewSceneChanged", (data) async {
+        updateState((m) {
+          m["activePreview"] = data["scene-name"];
+        });
+      });
+
+      client.addEventListener("SceneItemVisibilityChanged", (data) async {
+// SceneItemAdded
+// SourceOrderChanged
+      });
+
+// ScenesChanged
+// SwitchedScenes
+
+      var resp = await client.request(command: "GetSceneList");
+      String currentScene = resp["current-scene"];
+
+      List<dynamic> scenes = resp["scenes"];
+
+      updateState((fn) {
+        fn["scenes"] = scenes.map((e) => (e["name"])).toList();
+      });
+      // Map<String, dynamic> scenesObject = new Map();
+      // for (dynamic scene in scenes)
+      //   scenesObject[scene["name"]] = scene["sources"];
+    });
+  Uri? obsAddress;
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -94,6 +159,31 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            new Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                child: provideState(SettingsAssignment(
+                  saveCallback: (buttons) {
+                    log(("Got save"));
+                    updateState((fn) {
+                      fn["buttons"] = buttons;
+                    });
+                  },
+                ))),
+            new Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                child: SettingsConnection(
+                  saveCallback: (settings) {
+                    Uri? _ =
+                        Uri.tryParse('ws://${settings.host}:${settings.port}');
+                    if (_ != null) {
+                      setState(() {
+                        obsAddress = _;
+                      });
+                      client.connectURI(_);
+                    }
+                  },
+                )),
+            provideState(PreviewProgramController()),
             Text(
               'You have pushed the button this many times:',
             ),
@@ -101,6 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
+            Text(obsAddress?.toString() ?? ""),
           ],
         ),
       ),

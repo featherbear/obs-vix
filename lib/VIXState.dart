@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-Map _data = new Map();
+typedef VIXStateData = Map;
+
+VIXStateData _data = new Map();
 int lastItem = 0;
 
 class VIXState extends InheritedWidget {
@@ -63,5 +65,5 @@ void updateState(void Function(Map) fn) {
   _stateUpdaters.forEach((cb) => cb());
 }
 
-Map getState(BuildContext context) =>
+VIXStateData getState(BuildContext context) =>
     context.dependOnInheritedWidgetOfExactType<VIXState>()!.data;
