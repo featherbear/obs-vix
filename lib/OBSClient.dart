@@ -19,7 +19,7 @@ class AuthException implements Exception {
   String toString() => "AuthException: ${this.message}";
 }
 
-class OBSInstance {
+class OBSClient {
   WebSocketChannel? _channel;
   dynamic _serverCapabilities;
   late Map<String, Completer> _messageMap;
