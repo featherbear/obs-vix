@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:obs_vix/OBSClient.dart';
 
 void main() {
   runApp(MyApp());
