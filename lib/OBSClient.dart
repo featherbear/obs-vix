@@ -12,6 +12,7 @@ String B64_SHA256(String a, String b) =>
     base64Encode(sha256.convert(utf8.encode(a + b)).bytes);
 
 typedef RawCallbackFunction = Function(String data);
+typedef CallbackFunction = Function(dynamic data);
 
 class AuthException implements Exception {
   final dynamic message;
@@ -28,6 +29,7 @@ class OBSClient {
   /// Raw callbacks - these do not reset between sessions of the same instance
   List<RawCallbackFunction> _rawCallbacks = [];
   List<RawCallbackFunction> _rawCallbacksSnoop = [];
+  Map<String, List<CallbackFunction>> _callbacks = new Map();
 
   void close() {
     _channel?.sink.close();
@@ -53,13 +55,11 @@ class OBSClient {
       var obj = jsonDecode(event);
       if (obj['message-id'] == null) {
         // Event
+        _alertListener(obj["update-type"], obj);
         _alertRawListeners(event);
-        // TODO:
       } else {
         // Request
-
         if (!(obj['message-id'] as String).startsWith(_prefix)) return;
-        _alertRawListeners(event);
 
         String id = (obj['message-id'] as String).substring(_prefix.length);
         if (_messageMap.containsKey(id)) {
@@ -67,6 +67,8 @@ class OBSClient {
           _messageMap.remove(id);
           c.complete(obj);
         }
+
+        _alertRawListeners(event);
       }
     });
 
@@ -109,6 +111,17 @@ class OBSClient {
         host: settings.host, port: settings.port, password: settings.password);
   }
 
+  void addEventListener(String eventName, CallbackFunction callback) {
+    if (!_callbacks.containsKey(eventName)) _callbacks[eventName] = [];
+    if (_callbacks[eventName]!.contains(callback)) return;
+    _callbacks[eventName]!.add(callback);
+  }
+
+  void removeEventListener(String eventName, CallbackFunction callback) {
+    if (!_callbacks.containsKey(eventName)) return;
+    _callbacks[eventName]!.remove(callback);
+  }
+
   void addRawListener(RawCallbackFunction callback, {bool snoop = false}) {
     if (_rawCallbacks.contains(callback) ||
         _rawCallbacksSnoop.contains(callback)) {
@@ -124,6 +137,11 @@ class OBSClient {
   void removeRawListener(RawCallbackFunction callback) {
     _rawCallbacks.remove(callback);
     _rawCallbacksSnoop.remove(callback);
+  }
+
+  void _alertListener(String eventName, dynamic data) {
+    if (!_callbacks.containsKey(eventName)) return;
+    _callbacks[eventName]!.forEach((fn) => fn(data));
   }
 
   void _alertRawListeners(String data, {bool snoop = false}) {
