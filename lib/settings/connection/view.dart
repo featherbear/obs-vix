@@ -78,7 +78,7 @@ class _SettingsConnectionState extends State<SettingsConnection> {
               onPressed: () {
                 this.saveCallback?.call(new ConnectionSettings(
                     host: hostnameController.text,
-                    port: int.tryParse(portController.text) ?? 1,
+                    port: int.tryParse(portController.text) ?? 4444,
                     password: passwordController.text));
               },
               child: null,
