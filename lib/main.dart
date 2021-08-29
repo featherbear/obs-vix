@@ -67,6 +67,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Uri? obsAddress;
+
   OBSClient client = new OBSClient()
     // ..addRawListener((data) {
     //   log(data);
@@ -75,55 +77,53 @@ class _MyHomePageState extends State<MyHomePage> {
         .then((client) async {
       {
         client.request(command: "EnableStudioMode");
+        client.addEventListener("StudioModeSwitched", (data) async {
+          if (!data["new-state"]) client.request(command: "EnableStudioMode");
+        });
+      }
+      {
         client.request(command: "GetCurrentScene").then((data) {
           updateState((m) {
             m["activeProgram"] = data["name"];
           });
         });
+        client.addEventListener("SwitchScenes", (data) async {
+          updateState((m) {
+            m["activeProgram"] = data["scene-name"];
+          });
+        });
+      }
+      {
         client.request(command: "GetPreviewScene").then((data) {
           updateState((m) {
             m["activePreview"] = data["name"];
           });
         });
+
+        client.addEventListener("PreviewSceneChanged", (data) async {
+          updateState((m) {
+            m["activePreview"] = data["scene-name"];
+          });
+        });
       }
 
-      client.addEventListener("StudioModeSwitched", (data) async {
-        if (!data["new-state"]) client.request(command: "EnableStudioMode");
-      });
-
-      client.addEventListener("SwitchScenes", (data) async {
-        updateState((m) {
-          m["activeProgram"] = data["scene-name"];
-        });
-      });
-
-      client.addEventListener("PreviewSceneChanged", (data) async {
-        updateState((m) {
-          m["activePreview"] = data["scene-name"];
-        });
-      });
-
       client.addEventListener("SceneItemVisibilityChanged", (data) async {
-// SceneItemAdded
-// SourceOrderChanged
+        // SceneItemAdded
+        // SourceOrderChanged
       });
 
-// ScenesChanged
-// SwitchedScenes
+      {
+        void Function(dynamic) cb = (resp) {
+          List<dynamic> scenes = resp["scenes"];
 
-      var resp = await client.request(command: "GetSceneList");
-      String currentScene = resp["current-scene"];
-
-      List<dynamic> scenes = resp["scenes"];
-
-      updateState((fn) {
-        fn["scenes"] = scenes.map((e) => (e["name"])).toList();
-      });
-      // Map<String, dynamic> scenesObject = new Map();
-      // for (dynamic scene in scenes)
-      //   scenesObject[scene["name"]] = scene["sources"];
+          updateState((fn) {
+            fn["scenes"] = scenes.map((e) => (e["name"])).toList();
+          });
+        };
+        client.request(command: "GetSceneList").then(cb);
+        client.addEventListener("ScenesChanged", cb);
+      }
     });
-  Uri? obsAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +163,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: EdgeInsets.symmetric(horizontal: 15),
                 child: provideState(SettingsAssignment(
                   saveCallback: (buttons) {
-                    log(("Got save"));
                     updateState((fn) {
                       fn["buttons"] = buttons;
                     });

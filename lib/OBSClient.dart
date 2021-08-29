@@ -49,7 +49,6 @@ class OBSClient {
     _channel = WebSocketChannel.connect(uri);
 
     _channel!.stream.listen((event) {
-      // log(event);
       _alertRawListeners(event, snoop: true);
 
       var obj = jsonDecode(event);

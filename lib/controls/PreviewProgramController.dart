@@ -43,8 +43,7 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
 
   @override
   Widget build(BuildContext context) {
-    log(("Doing build"));
-    final VIX = getState(context);
+s    final VIX = getState(context);
 
     return Container(
       child: new Column(
