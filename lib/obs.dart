@@ -62,7 +62,13 @@ class OBSInstance {
       }
     });
 
-    this.request(command: "GetVersion");
+    this.request(command: "GetVersion").then((r) {
+      // Only update the first time
+      if (_serverCapabilities != null) return;
+
+      _serverCapabilities = r;
+      log("Got server capabilities");
+    });
 
     log("Connected");
   }
