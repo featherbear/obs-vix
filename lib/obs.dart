@@ -44,7 +44,7 @@ class OBSInstance {
       } else {
         // Request
 
-        if ((obj['message-id'] as String).startsWith(_prefix)) return;
+        if (!(obj['message-id'] as String).startsWith(_prefix)) return;
         _alertRawListeners(event);
 
         String id = (obj['message-id'] as String).substring(_prefix.length);
