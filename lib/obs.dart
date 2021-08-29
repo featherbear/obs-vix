@@ -15,9 +15,10 @@ typedef RawCallbackFunction = Function(String data);
 class OBSInstance {
   WebSocketChannel? _channel;
   dynamic _serverCapabilities;
-  Map<String, Completer> _messageMap = new Map();
+  late Map<String, Completer> _messageMap;
   late String _prefix;
 
+  /// Raw callbacks - these do not reset between sessions of the same instance
   List<RawCallbackFunction> _rawCallbacks = [];
   List<RawCallbackFunction> _rawCallbacksSnoop = [];
 
@@ -25,11 +26,16 @@ class OBSInstance {
     _channel?.sink.close();
   }
 
+  void _init() {
+    _channel = null;
+    this._serverCapabilities = null;
+    _messageMap = new Map();
+    _prefix = '$mIDprefix${uuidv4().substring(0, 8)}::';
+  }
+
   void _connect(Uri uri) {
     this.close();
-
-    // Generate new prefix
-    _prefix = '$mIDprefix${uuidv4().substring(0, 8)}::';
+    this._init();
 
     _channel = WebSocketChannel.connect(uri);
 
