@@ -1,14 +1,26 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:obs_vix/settings/connection/data.dart';
 
 class SettingsConnection extends StatefulWidget {
-  SettingsConnection({Key? key}) : super(key: key);
+  final void Function(ConnectionSettings settings)? saveCallback;
+
+  SettingsConnection({Key? key, this.saveCallback}) : super(key: key);
   @override
-  _SettingsConnectionState createState() => new _SettingsConnectionState();
+  _SettingsConnectionState createState() =>
+      new _SettingsConnectionState(saveCallback: saveCallback);
 }
 
 class _SettingsConnectionState extends State<SettingsConnection> {
+  final void Function(ConnectionSettings settings)? saveCallback;
+
+  _SettingsConnectionState({this.saveCallback});
+
+  var hostnameController = TextEditingController();
+  var portController = TextEditingController();
+  var passwordController = TextEditingController();
+
   bool _isObscure = true;
 
   @override
@@ -22,6 +34,7 @@ class _SettingsConnectionState extends State<SettingsConnection> {
             new TextField(
                 enableSuggestions: false,
                 autocorrect: false,
+                controller: hostnameController,
                 decoration: InputDecoration(
                   labelText: "Hostname / IP Address",
                 )),
@@ -29,6 +42,7 @@ class _SettingsConnectionState extends State<SettingsConnection> {
               enableSuggestions: false,
               autocorrect: false,
               keyboardType: TextInputType.number,
+              controller: portController,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(5)
@@ -48,6 +62,7 @@ class _SettingsConnectionState extends State<SettingsConnection> {
               obscureText: _isObscure,
               enableSuggestions: false,
               autocorrect: false,
+              controller: passwordController,
               decoration: InputDecoration(
                   labelText: 'Password',
                   suffixIcon: IconButton(
@@ -58,6 +73,15 @@ class _SettingsConnectionState extends State<SettingsConnection> {
                           _isObscure = !_isObscure;
                         });
                       })),
+            ),
+            new ElevatedButton(
+              onPressed: () {
+                this.saveCallback?.call(new ConnectionSettings(
+                    host: hostnameController.text,
+                    port: int.tryParse(portController.text) ?? 1,
+                    password: passwordController.text));
+              },
+              child: null,
             )
           ]),
       padding: const EdgeInsets.all(0.0),
