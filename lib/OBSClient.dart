@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
@@ -97,6 +98,7 @@ class OBSClient {
       if (response["status"] != 'ok') throw AuthException(response["error"]);
       return this;
     }).then((client) {
+      log("OBS client connected to ${this.uri.toString()}");
       Future.sync(() => this._connectCallback?.call(client));
       return this;
     });
