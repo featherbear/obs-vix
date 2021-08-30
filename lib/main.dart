@@ -160,6 +160,67 @@ class _MyHomePageState extends State<MyHomePage> {
     ]);
 
     updateVIXState((data) => data.addEntries(updates.entries));
+
+    //
+
+    int n = 3;
+
+    // Get all scenes, with only nbox link sources
+    Map sceneSources = {
+      for (var sceneObj in (await client.request(command: "GetSceneList"))["scenes"])
+        sceneObj["name"]: (sceneObj["sources"] as List).where((source) => (source as Map)["name"].startsWith("vix::nbox::link::")).toList()
+    };
+
+    // Map nbox link sources to their ID
+    Map<String, int> nBoxSourceMapping = {};
+    sceneSources.values.forEach((sourceList) => sourceList.forEach((source) => nBoxSourceMapping[source["name"]] = source["id"]));
+
+    // Filter only nbox scenes, and flatten sources to only their name
+    sceneSources = {
+      for (var obj in sceneSources.entries.where((obj) => (obj.key.startsWith("vix::nbox::"))))
+        obj.key: obj.value.map((source) => source["name"]).toList()
+    };
+
+    // the largest n-box needs `n` switcher scenes
+    for (int i = 1; i <= n; i++) {
+      String nbox_switcher_sceneName = "vix::nbox::switcher::$i";
+      if (sceneSources.containsKey(nbox_switcher_sceneName)) continue;
+      await client.request(command: "CreateScene", params: {"sceneName": nbox_switcher_sceneName});
+    }
+
+    log(sceneSources.toString());
+    log(nBoxSourceMapping.toString());
+    // each n-box needs to contain n switchers
+    for (int i = 1; i <= n; i++) {
+      String nbox_sceneName = "vix::nbox::$i";
+
+      if (sceneSources.containsKey(nbox_sceneName)) continue;
+      await client.request(command: "CreateScene", params: {"sceneName": nbox_sceneName});
+
+      // for (int j = 1; j <= i; j++) {
+      //   String nbox_link_sourceName = "vix::nbox::link::$j";
+      //   if (!nBoxSourceMapping.containsKey(nbox_link_sourceName)) {
+      //     await client.request(command: "CreateSource", params: {
+      //       "sourceName": nbox_link_sourceName,
+      //       "sourceKind":
+      //     })
+      //   }
+      // }
+    }
+
+// for (int i = 1; i <= n; i++) {
+//       var response = await client.request(command: "GetSourcesList");
+//       response["sources"].map((o) => o)
+//     }
+
+    // DuplicateSceneItem
+    // AddSceneItem
+    // DeleteSceneItem
+    // SetSceneItemRender
+    // GetSceneItemList
+    // Currently can't hide from multiview
+    //vix::nbox::{N} (Contains up to N vix::nbox-src::{M} scenes)
+    //vix::nbox-src::{N}
   }
 
   void _initOBSListeners() {
@@ -204,8 +265,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  final OBSClient client = OBSClient();
-  // ..addRawListener((data) => log(data));
+  final OBSClient client = OBSClient()..addRawListener((data) => log(data));
 
   final focusNode = FocusNode()..requestFocus();
 
