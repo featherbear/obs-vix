@@ -82,9 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }).then((_) {
       this._initOBSListeners();
-      this.client
-        ..setConnectCallback(this._onOBSConnect)
-        ..connectObject(this._connectionSettings);
+      this.client.setConnectCallback(this._onOBSConnect);
+
+      this.client.connectObject(this._connectionSettings).catchError((lol) {});
     });
   }
 
