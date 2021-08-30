@@ -10,6 +10,7 @@ import 'package:obs_vix/settings/assignment/view.dart';
 import 'package:obs_vix/settings/connection/data.dart';
 import 'package:obs_vix/settings/connection/view.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(MyApp());
@@ -59,6 +60,80 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  _MyHomePageState() {
+    SharedPreferences.getInstance().then((prefs) {
+      String? host = prefs.getString("obs::host");
+      int? port = prefs.getInt("obs::port");
+      String? password = prefs.getString("obs::pass");
+      if (host == null || port == null) {
+        this._connectionSettings = ConnectionSettings(
+          host: "localhost",
+          port: 4444,
+        );
+      } else {
+        this._connectionSettings =
+            ConnectionSettings(host: host, port: port, password: password);
+      }
+    });
+  }
+
+  late ConnectionSettings _connectionSettings;
+
+  void _onOBSConnect() async {
+    Map updates = {};
+
+    await Future.wait([
+      client.request(command: "EnableStudioMode"),
+      client.request(command: "GetCurrentScene").then((data) {
+        updates["activeProgram"] = data["name"];
+      }),
+      client.request(command: "GetPreviewScene").then((data) {
+        updates["activePreview"] = data["name"];
+      }),
+      client.request(command: "GetSceneList").then((resp) {
+        updates["scenes"] = resp["scenes"].map((e) => (e["name"])).toList();
+      })
+    ]);
+
+    updateVIXState((data) => data.addEntries(updates.entries));
+  }
+
+  void _initOBSListeners() {
+    client
+      ..addEventListener("StudioModeSwitched", (data) async {
+        if (!data["new-state"])
+          this.client.request(command: "EnableStudioMode");
+      })
+      ..addEventListener("SwitchScenes", (data) async {
+        updateVIXState((m) {
+          m["activeProgram"] = data["scene-name"];
+        });
+      })
+      ..addEventListener("PreviewSceneChanged", (data) async {
+        updateVIXState((m) {
+          m["activePreview"] = data["scene-name"];
+        });
+      })
+      ..addEventListener("TransitionBegin", (resp) {
+        updateVIXState((m) {
+          // m["activePreview"] = data["from-scene"]; // Don't need to apply the preview, should be handled when PreviewSceneChange is received
+
+          m["activeProgram"] = resp["to-scene"];
+        });
+      })
+      ..addEventListener("ScenesChanged", (resp) {
+        List<dynamic> scenes = resp["scenes"];
+
+        updateVIXState((m) {
+          m["scenes"] = scenes.map((e) => (e["name"])).toList();
+        });
+      });
+    // ..addEventListener("SceneItemVisibilityChanged", (data) async {
+    //   // SceneItemAdded
+    //   // SourceOrderChanged
+    // });
+  }
+
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -70,73 +145,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  OBSClient client = new OBSClient()
-    // ..addRawListener((data) {
-    //   log(data);
-    // })
-    ..connect(host: 'localhost', port: 4444, password: "1234")
-        .then((client) async {
-      {
-        client.request(command: "EnableStudioMode");
-        client.addEventListener("StudioModeSwitched", (data) async {
-          if (!data["new-state"]) client.request(command: "EnableStudioMode");
-        });
-      }
-      {
-        client.request(command: "GetCurrentScene").then((data) {
-          updateVIXState((m) {
-            m["activeProgram"] = data["name"];
-          });
-        });
-        client.addEventListener("SwitchScenes", (data) async {
-          updateVIXState((m) {
-            m["activeProgram"] = data["scene-name"];
-          });
-        });
-      }
-      {
-        client.request(command: "GetPreviewScene").then((data) {
-          updateVIXState((m) {
-            m["activePreview"] = data["name"];
-          });
-        });
+  final OBSClient client = OBSClient();
 
-        client.addEventListener("PreviewSceneChanged", (data) async {
-          updateVIXState((m) {
-            m["activePreview"] = data["scene-name"];
-          });
-        });
-      }
-      {
-        void Function(dynamic) cb = (resp) {
-          updateVIXState((m) {
-            // Don't need to apply the preview, should be handled when PreviewSceneChange is received
-            // m["activePreview"] = data["from-scene"];
-
-            m["activeProgram"] = resp["to-scene"];
-          });
-        };
-        client.addEventListener("TransitionBegin", cb);
-        // client.addEventListener("TransitionEnd", cb);
-      }
-
-      client.addEventListener("SceneItemVisibilityChanged", (data) async {
-        // SceneItemAdded
-        // SourceOrderChanged
-      });
-
-      {
-        void Function(dynamic) cb = (resp) {
-          List<dynamic> scenes = resp["scenes"];
-
-          updateVIXState((fn) {
-            fn["scenes"] = scenes.map((e) => (e["name"])).toList();
-          });
-        };
-        client.request(command: "GetSceneList").then(cb);
-        client.addEventListener("ScenesChanged", cb);
-      }
-    });
+  // ..addRawListener((data) {
+  //   log(data);
+  //
+  //connect(host: 'localhost', port: 4444, password: "1234")
 
   final focusNode = FocusNode()..requestFocus();
 
@@ -220,11 +234,27 @@ class _MyHomePageState extends State<MyHomePage> {
                                             padding: EdgeInsets.symmetric(
                                                 horizontal: 15),
                                             child: SettingsConnectionView(
-                                              prefill: ConnectionSettings(
-                                                host: "localhost",
-                                                port: 4444,
-                                              ),
-                                              saveCallback: (settings) {
+                                              prefill: this._connectionSettings,
+                                              saveCallback: (settings) async {
+                                                await SharedPreferences
+                                                        .getInstance()
+                                                    .then((prefs) =>
+                                                        Future.wait([
+                                                          prefs.setString(
+                                                              "obs::host",
+                                                              settings.host),
+                                                          prefs.setInt(
+                                                              "obs::port",
+                                                              settings.port),
+                                                          (settings.password ==
+                                                                  null)
+                                                              ? prefs.remove(
+                                                                  "obs::pass")
+                                                              : prefs.setString(
+                                                                  "obs::pass",
+                                                                  settings
+                                                                      .password!)
+                                                        ]));
                                                 Navigator.pop(context);
                                                 client.connectObject(settings);
                                               },
