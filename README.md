@@ -1,16 +1,21 @@
-# obs_vix
+# OBS VIX
 
-A new Flutter project.
+> Vision Mixer panel for OBS via [obs-websocket](https://github.com/Palakis/obs-websocket)
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Releases
 
-A few resources to get you started if this is your first Flutter project:
+* [Web - featherbear.cc/obs-vix](http://featherbear.cc/obs-vix/)
+* [Windows]
+* [Android]
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Development
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Haha made in Flutter I have no idea how to write apps in Flutter.
+
+## License
+
+Inspired by [illusdidi's vision mixer](http://illusdidi.000webhostapp.com/webtv/websocket/obs_studio_aux_new)
+
+This software is licensed under the MIT license, as can be viewed [here](LICENSE).
