@@ -88,7 +88,12 @@ class _SettingsConnectionViewState extends State<SettingsConnectionView> {
                 padding: EdgeInsets.all(15),
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: Validation
+                    if (Uri.tryParse(
+                            'ws://${hostnameController.text}:${portController.text}') ==
+                        null) {
+                      throw Exception(
+                          "Lol we need to show the user an error or something");
+                    }
 
                     this.saveCallback?.call(ConnectionSettings(
                         host: hostnameController.text,

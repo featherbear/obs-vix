@@ -25,6 +25,8 @@ class OBSClient {
   dynamic _serverCapabilities;
   late Map<String, Completer> _messageMap;
   late String _prefix;
+  Uri? _uri;
+  Uri? get uri => _uri;
 
   /// Raw callbacks - these do not reset between sessions of the same instance
   List<RawCallbackFunction> _rawCallbacks = [];
@@ -46,8 +48,8 @@ class OBSClient {
     this.close();
     this._init();
 
+    _uri = uri;
     _channel = WebSocketChannel.connect(uri);
-
     _channel!.stream.listen((event) {
       _alertRawListeners(event, snoop: true);
 

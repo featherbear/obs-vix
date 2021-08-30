@@ -70,8 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Uri? obsAddress;
-
   OBSClient client = new OBSClient()
     // ..addRawListener((data) {
     //   log(data);
@@ -227,15 +225,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 port: 4444,
                                               ),
                                               saveCallback: (settings) {
-                                                Uri? _ = Uri.tryParse(
-                                                    'ws://${settings.host}:${settings.port}');
-                                                if (_ != null) {
-                                                  setState(() {
-                                                    obsAddress = _;
-                                                  });
-                                                  Navigator.pop(context);
-                                                  client.connectURI(_);
-                                                }
+                                                Navigator.pop(context);
+                                                client.connectObject(settings);
                                               },
                                             )))))
                           },
@@ -305,7 +296,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   '$_counter',
                   style: Theme.of(context).textTheme.headline4,
                 ),
-                Text(obsAddress?.toString() ?? ""),
               ],
             ),
           ),
