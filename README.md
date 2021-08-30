@@ -4,13 +4,32 @@
 
 ---
 
+# Usage
+
+Yeah so i'll write this when I finish the app.  
+But like rn there's a menu button on the top right to change the OBS address, and another to change the button assignments.
+
+**Keys**
+
+* <kbd>1</kbd>-<kbd>9</kbd> - Select preview scene
+* <kbd>SPACE</kbd> - Fade transition
+* <kbd>ENTER</kbd> - Cut transition
+
+---
+
 ## Releases
 
 * [Web - featherbear.cc/obs-vix](http://featherbear.cc/obs-vix/)
-* [Windows]
+* [Windows] - TBA (Use the [web](http://featherbear.cc/obs-vix/) release for now)
 * [Android (APK)](https://nightly.link/featherbear/obs-vix/workflows/flutter/master/obs-vix_CI_BUILD.apk.zip)
 
 <!-- This https://nightly.link site is pretty cool! -->
+
+### Other platforms
+
+* iOS - I'm not publishing this to the App Store, but the [web](http://featherbear.cc/obs-vix/) release should work!
+* Mac - Feel free to build it yourself
+* Linux - Feel free to build it yourself
 
 ## Development
 
