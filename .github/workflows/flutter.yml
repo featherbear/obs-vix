@@ -39,7 +39,8 @@ jobs:
     - run: flutter build apk
     - uses: actions/upload-artifact@v2
       with:
-        name: obs-vix_${{ github.sha }}.apk
+        # name: obs-vix_${{ github.sha }}.apk
+        name: obs-vix_CI_BUILD.apk
         path: build/app/outputs/flutter-apk/app-release.apk
     # - run: cp build/app/outputs/flutter-apk/app-release.apk obs-vix_${{ github.sha }}.apk
     # - name: Release
