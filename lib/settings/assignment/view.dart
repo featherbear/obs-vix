@@ -30,6 +30,12 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
   Widget build(BuildContext context) {
     final VIX = getVIXState(context);
 
+    // Get scenes, and merge with previously selected scenes (that may no longer exist)
+    List<String> sceneList = VIX["scenes"] ?? [];
+    if (this.buttons != null) {
+      sceneList = [...sceneList, ...this.buttons!.where((s) => s != null).cast<String>()].toSet().toList();
+    }
+
     return Container(
       child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -46,7 +52,7 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
                               DropdownButton(
                                 value: entry.value,
                                 hint: Text("Select scene"),
-                                items: ['', ...(VIX["scenes"] ?? [])].cast<String>().map((e) {
+                                items: ['', ...sceneList].cast<String>().map((e) {
                                   return DropdownMenuItem(value: e, child: Text(e.isNotEmpty ? e : "(none)"));
                                 }).toList(),
                                 onChanged: (String? s) {
