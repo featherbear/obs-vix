@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 import 'package:obs_vix/settings/connection/data.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 const uuid = Uuid();
@@ -21,6 +23,12 @@ class AuthException implements Exception {
   String toString() => "AuthException: ${this.message}";
 }
 
+class ConnectionException implements Exception {
+  final dynamic message;
+  ConnectionException([this.message]);
+  String toString() => "ConnectionException: ${this.message}";
+}
+
 class OBSClient {
   WebSocketChannel? _channel;
   dynamic _serverCapabilities;
@@ -28,6 +36,7 @@ class OBSClient {
   late String _prefix;
   Uri? _uri;
   Uri? get uri => _uri;
+  bool get isConnected => _channel == null ? false : _channel!.closeCode != null;
 
   /// Raw callbacks - these do not reset between sessions of the same instance
   List<RawCallbackFunction> _rawCallbacks = [];
@@ -51,12 +60,12 @@ class OBSClient {
     this._connectCallback = cb;
   }
 
-  Future<OBSClient> _connect(Uri uri, {String? password}) {
+  Future<OBSClient> _connect(Uri uri, {String? password}) async {
     this.close();
     this._init();
 
     _uri = uri;
-    _channel = WebSocketChannel.connect(uri);
+    _channel = IOWebSocketChannel(await WebSocket.connect(_uri.toString(), headers: {"User-Agent": "obs-vix"}));
     _channel!.stream.listen((event) {
       _alertRawListeners(event, snoop: true);
 
