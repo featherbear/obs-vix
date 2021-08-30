@@ -21,6 +21,9 @@ jobs:
 
     - run: flutter build -v web
 
+    - name: Set page base
+      run: sed -i --regexp-extended 's/(<base href=")(.+?)(")/\1\/${{ github.event.repository.name }}\/\3/' ./build/web/index.html
+
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v2.3.1
       env:
