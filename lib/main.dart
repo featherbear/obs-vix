@@ -62,23 +62,35 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _MyHomePageState() {
     SharedPreferences.getInstance().then((prefs) {
-      String? host = prefs.getString("obs::host");
-      int? port = prefs.getInt("obs::port");
-      String? password = prefs.getString("obs::pass");
-      if (host == null || port == null) {
-        this._connectionSettings = ConnectionSettings(
-          host: "localhost",
-          port: 4444,
-        );
-      } else {
-        this._connectionSettings = ConnectionSettings(host: host, port: port, password: password);
+      {
+        String? host = prefs.getString("obs::host");
+        int? port = prefs.getInt("obs::port");
+        String? password = prefs.getString("obs::pass");
+
+        if (host == null || port == null) {
+          this._connectionSettings = ConnectionSettings(
+            host: "localhost",
+            port: 4444,
+          );
+        } else {
+          this._connectionSettings = ConnectionSettings(host: host, port: port, password: password);
+        }
       }
+
+      updateVIXState((m) {
+        m["buttons"] = (prefs.getStringList("vix::buttons") ?? []).map((s) => s.isNotEmpty ? s : null).toList();
+      });
+    }).then((_) {
+      this._initOBSListeners();
+      this.client
+        ..setConnectCallback(this._onOBSConnect)
+        ..connectObject(this._connectionSettings);
     });
   }
 
   late ConnectionSettings _connectionSettings;
 
-  void _onOBSConnect() async {
+  void _onOBSConnect(OBSClient client) async {
     Map updates = {};
 
     await Future.wait([
@@ -99,15 +111,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _initOBSListeners() {
     client
-      ..addEventListener("StudioModeSwitched", (data) async {
+      ..addEventListener("StudioModeSwitched", (data) {
         if (!data["new-state"]) this.client.request(command: "EnableStudioMode");
       })
-      ..addEventListener("SwitchScenes", (data) async {
+      ..addEventListener("SwitchScenes", (data) {
         updateVIXState((m) {
           m["activeProgram"] = data["scene-name"];
         });
       })
-      ..addEventListener("PreviewSceneChanged", (data) async {
+      ..addEventListener("PreviewSceneChanged", (data) {
         updateVIXState((m) {
           m["activePreview"] = data["scene-name"];
         });
@@ -134,11 +146,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
     });
   }
@@ -148,7 +155,6 @@ class _MyHomePageState extends State<MyHomePage> {
   // ..addRawListener((data) {
   //   log(data);
   //
-  //connect(host: 'localhost', port: 4444, password: "1234")
 
   final focusNode = FocusNode()..requestFocus();
 
@@ -230,8 +236,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                             padding: EdgeInsets.symmetric(horizontal: 15),
                                             child: SettingsConnectionView(
                                               prefill: this._connectionSettings,
-                                              saveCallback: (settings) async {
-                                                await SharedPreferences.getInstance().then((prefs) => Future.wait([
+                                              saveCallback: (settings) {
+                                                SharedPreferences.getInstance().then((prefs) => Future.wait([
                                                       prefs.setString("obs::host", settings.host),
                                                       prefs.setInt("obs::port", settings.port),
                                                       (settings.password == null)
@@ -259,8 +265,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                             child: provideVIXState(SettingsAssignmentView(
                                               buttons: readVIXState()["buttons"],
                                               saveCallback: (buttons) {
-                                                updateVIXState((fn) {
-                                                  fn["buttons"] = buttons;
+                                                SharedPreferences.getInstance().then(
+                                                    (prefs) => prefs.setStringList("vix::buttons", buttons.map((s) => s != null ? s : "").toList()));
+                                                updateVIXState((m) {
+                                                  m["buttons"] = buttons;
                                                 });
                                                 Navigator.pop(context);
                                               },

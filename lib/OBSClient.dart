@@ -10,6 +10,7 @@ const uuid = Uuid();
 const mIDprefix = "obs-vix::";
 String B64_SHA256(String a, String b) => base64Encode(sha256.convert(utf8.encode(a + b)).bytes);
 
+typedef ConnectCallbackFunction = Function(OBSClient data);
 typedef RawCallbackFunction = Function(String data);
 typedef CallbackFunction = Function(dynamic data);
 
@@ -30,6 +31,8 @@ class OBSClient {
   /// Raw callbacks - these do not reset between sessions of the same instance
   List<RawCallbackFunction> _rawCallbacks = [];
   List<RawCallbackFunction> _rawCallbacksSnoop = [];
+
+  ConnectCallbackFunction? _connectCallback;
   Map<String, List<CallbackFunction>> _callbacks = new Map();
 
   void close() {
@@ -41,6 +44,10 @@ class OBSClient {
     this._serverCapabilities = null;
     _messageMap = new Map();
     _prefix = '$mIDprefix${uuid.v4().substring(0, 8)}::';
+  }
+
+  void setConnectCallback(ConnectCallbackFunction cb) {
+    this._connectCallback = cb;
   }
 
   Future<OBSClient> _connect(Uri uri, {String? password}) {
@@ -88,6 +95,9 @@ class OBSClient {
 
       var response = await this.request(command: "Authenticate", params: {"auth": chalResponse});
       if (response["status"] != 'ok') throw AuthException(response["error"]);
+      return this;
+    }).then((client) {
+      Future.sync(() => this._connectCallback?.call(client));
       return this;
     });
   }
