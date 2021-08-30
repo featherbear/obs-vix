@@ -7,13 +7,18 @@ typedef CallbackType = void Function(SceneOrder);
 
 class SettingsAssignmentView extends StatefulWidget {
   final CallbackType? saveCallback;
-  final SceneOrder? buttons;
+  final SceneOrder _buttons;
 
-  SettingsAssignmentView({Key? key, this.saveCallback, this.buttons})
-      : super(key: key);
+  @override
+  SettingsAssignmentView({Key? key, this.saveCallback, SceneOrder? buttons})
+      : this._buttons = SceneOrder.from(buttons ?? []),
+        super(key: key);
+
+  // : super(key: key);
+
   @override
   _SettingsAssignmentViewState createState() => _SettingsAssignmentViewState(
-      saveCallback: this.saveCallback, buttons: this.buttons);
+      saveCallback: this.saveCallback, buttons: this._buttons);
 }
 
 class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
