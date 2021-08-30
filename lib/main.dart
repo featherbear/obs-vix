@@ -218,11 +218,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                     type: PageTransitionType.fade,
                                     child: PageViewWrapper(
                                         title: "OBS Connection Settings",
-                                        child: new Padding(
+                                        child: Padding(
                                             padding: EdgeInsets.symmetric(
                                                 horizontal: 15),
                                             child: SettingsConnectionView(
-                                              prefill: new ConnectionSettings(
+                                              prefill: ConnectionSettings(
                                                 host: "localhost",
                                                 port: 4444,
                                               ),
@@ -232,8 +232,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 if (_ != null) {
                                                   setState(() {
                                                     obsAddress = _;
-                                                    Navigator.pop(context);
                                                   });
+                                                  Navigator.pop(context);
                                                   client.connectURI(_);
                                                 }
                                               },
@@ -249,15 +249,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                     type: PageTransitionType.fade,
                                     child: PageViewWrapper(
                                         title: "VIX Interface Settings",
-                                        child: new Padding(
+                                        child: Padding(
                                             padding: EdgeInsets.symmetric(
                                                 horizontal: 15),
                                             child: provideVIXState(
                                                 SettingsAssignmentView(
+                                              buttons:
+                                                  readVIXState()["buttons"],
                                               saveCallback: (buttons) {
                                                 updateVIXState((fn) {
                                                   fn["buttons"] = buttons;
                                                 });
+                                                Navigator.pop(context);
                                               },
                                             ))))))
                           },

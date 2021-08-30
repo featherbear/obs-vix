@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:obs_vix/VIXState.dart';
 
 typedef SceneOrder = List<String?>;
@@ -8,11 +7,13 @@ typedef CallbackType = void Function(SceneOrder);
 
 class SettingsAssignmentView extends StatefulWidget {
   final CallbackType? saveCallback;
+  final SceneOrder? buttons;
 
-  SettingsAssignmentView({Key? key, this.saveCallback}) : super(key: key);
+  SettingsAssignmentView({Key? key, this.saveCallback, this.buttons})
+      : super(key: key);
   @override
-  _SettingsAssignmentViewState createState() =>
-      new _SettingsAssignmentViewState(saveCallback: saveCallback);
+  _SettingsAssignmentViewState createState() => _SettingsAssignmentViewState(
+      saveCallback: this.saveCallback, buttons: this.buttons);
 }
 
 class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
@@ -25,20 +26,20 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
   Widget build(BuildContext context) {
     final VIX = getVIXState(context);
 
-    return new Container(
-      child: new Column(
+    return Container(
+      child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            new Column(
+            Column(
                 children: this
                         .buttons
                         ?.asMap()
                         .entries
-                        .map((entry) => new Row(children: [
-                              new Text('Button ${entry.key + 1} = '),
-                              new DropdownButton(
+                        .map((entry) => Row(children: [
+                              Text('Button ${entry.key + 1} = '),
+                              DropdownButton(
                                 value: entry.value,
                                 hint: Text("Select scene"),
                                 items: ['', ...(VIX["scenes"] ?? [])]
@@ -62,22 +63,26 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
                         // .toList()
                         .cast<Widget>() ??
                     []),
-            new ElevatedButton(
-              onPressed: () {
-                if (this.buttons == null) this.buttons = [];
+            Padding(
+                padding: EdgeInsets.all(15),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (this.buttons == null) this.buttons = [];
 
-                setState(() {
-                  this.buttons!.add(null);
-                });
-              },
-              child: new Text("Add button"),
-            ),
-            new ElevatedButton(
-              onPressed: () {
-                this.saveCallback?.call(this.buttons ?? []);
-              },
-              child: new Text("Save"),
-            )
+                    setState(() {
+                      this.buttons!.add(null);
+                    });
+                  },
+                  child: Text("Add button"),
+                )),
+            Padding(
+                padding: EdgeInsets.all(15),
+                child: ElevatedButton(
+                  onPressed: () {
+                    this.saveCallback?.call(this.buttons ?? []);
+                  },
+                  child: Text("Save"),
+                ))
           ]),
       padding: const EdgeInsets.all(0.0),
       alignment: Alignment.center,

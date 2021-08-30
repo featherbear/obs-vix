@@ -12,9 +12,8 @@ class SettingsConnectionView extends StatefulWidget {
   SettingsConnectionView({Key? key, this.prefill, this.saveCallback})
       : super(key: key);
   @override
-  _SettingsConnectionViewState createState() =>
-      new _SettingsConnectionViewState(
-          prefill: this.prefill, saveCallback: saveCallback);
+  _SettingsConnectionViewState createState() => _SettingsConnectionViewState(
+      prefill: this.prefill, saveCallback: saveCallback);
 }
 
 class _SettingsConnectionViewState extends State<SettingsConnectionView> {
@@ -36,20 +35,20 @@ class _SettingsConnectionViewState extends State<SettingsConnectionView> {
 
   @override
   Widget build(BuildContext context) {
-    return new Container(
-      child: new Column(
+    return Container(
+      child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            new TextField(
+            TextField(
                 enableSuggestions: false,
                 autocorrect: false,
                 controller: hostnameController,
                 decoration: InputDecoration(
                   labelText: "Hostname / IP Address",
                 )),
-            new TextFormField(
+            TextFormField(
               enableSuggestions: false,
               autocorrect: false,
               keyboardType: TextInputType.number,
@@ -69,7 +68,7 @@ class _SettingsConnectionViewState extends State<SettingsConnectionView> {
                 return null;
               },
             ),
-            new TextField(
+            TextField(
               obscureText: _isObscure,
               enableSuggestions: false,
               autocorrect: false,
@@ -85,18 +84,18 @@ class _SettingsConnectionViewState extends State<SettingsConnectionView> {
                         });
                       })),
             ),
-            new Padding(
+            Padding(
                 padding: EdgeInsets.all(15),
-                child: new ElevatedButton(
+                child: ElevatedButton(
                   onPressed: () {
                     // TODO: Validation
 
-                    this.saveCallback?.call(new ConnectionSettings(
+                    this.saveCallback?.call(ConnectionSettings(
                         host: hostnameController.text,
                         port: int.tryParse(portController.text) ?? 4444,
                         password: passwordController.text));
                   },
-                  child: new Text("Save"),
+                  child: Text("Save"),
                 ))
           ]),
       padding: const EdgeInsets.all(0.0),

@@ -65,7 +65,6 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
           new Row(
               children: generateRowChildren(
                   VIX, "activeProgram", COLOUR.RED, this.onProgramEvent)),
-          new Text(VIX["activeScene"] ?? "nope")
         ],
       ),
     );
