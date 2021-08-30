@@ -3,10 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:obs_vix/OBSClient.dart';
+import 'package:obs_vix/PageViewWrapper.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/controls/PreviewProgramController.dart';
 import 'package:obs_vix/settings/assignment/view.dart';
+import 'package:obs_vix/settings/connection/data.dart';
 import 'package:obs_vix/settings/connection/view.dart';
+import 'package:page_transition/page_transition.dart';
 
 void main() {
   runApp(MyApp());
@@ -202,6 +205,65 @@ class _MyHomePageState extends State<MyHomePage> {
             // Here we take the value from the MyHomePage object that was created by
             // the App.build method, and use it to set our appbar title.
             title: Text(widget.title),
+            actions: [
+              PopupMenuButton(
+                  onSelected: (Function fn) => fn(),
+                  itemBuilder: (context) => [
+                        PopupMenuItem(
+                          child: Text("Connection Settings"),
+                          value: () => {
+                            Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: PageViewWrapper(
+                                        title: "OBS Connection Settings",
+                                        child: new Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 15),
+                                            child: SettingsConnectionView(
+                                              prefill: new ConnectionSettings(
+                                                host: "localhost",
+                                                port: 4444,
+                                              ),
+                                              saveCallback: (settings) {
+                                                Uri? _ = Uri.tryParse(
+                                                    'ws://${settings.host}:${settings.port}');
+                                                if (_ != null) {
+                                                  setState(() {
+                                                    obsAddress = _;
+                                                    Navigator.pop(context);
+                                                  });
+                                                  client.connectURI(_);
+                                                }
+                                              },
+                                            )))))
+                          },
+                        ),
+                        PopupMenuItem(
+                          child: Text("Interface Settings"),
+                          value: () => {
+                            Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: PageViewWrapper(
+                                        title: "VIX Interface Settings",
+                                        child: new Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 15),
+                                            child: provideVIXState(
+                                                SettingsAssignmentView(
+                                              saveCallback: (buttons) {
+                                                updateVIXState((fn) {
+                                                  fn["buttons"] = buttons;
+                                                });
+                                              },
+                                            ))))))
+                          },
+                        )
+                      ])
+            ],
           ),
           body: Center(
             // Center is a layout widget. It takes a single child and positions it
@@ -223,29 +285,6 @@ class _MyHomePageState extends State<MyHomePage> {
               // horizontal).
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                new Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
-                    child: provideVIXState(SettingsAssignment(
-                      saveCallback: (buttons) {
-                        updateVIXState((fn) {
-                          fn["buttons"] = buttons;
-                        });
-                      },
-                    ))),
-                new Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
-                    child: SettingsConnection(
-                      saveCallback: (settings) {
-                        Uri? _ = Uri.tryParse(
-                            'ws://${settings.host}:${settings.port}');
-                        if (_ != null) {
-                          setState(() {
-                            obsAddress = _;
-                          });
-                          client.connectURI(_);
-                        }
-                      },
-                    )),
                 provideVIXState(PreviewProgramController(
                   onPreviewEvent: handleChangePreview,
                   onProgramEvent: (idx) {

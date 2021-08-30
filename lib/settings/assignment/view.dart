@@ -6,20 +6,20 @@ import 'package:obs_vix/VIXState.dart';
 typedef SceneOrder = List<String?>;
 typedef CallbackType = void Function(SceneOrder);
 
-class SettingsAssignment extends StatefulWidget {
+class SettingsAssignmentView extends StatefulWidget {
   final CallbackType? saveCallback;
 
-  SettingsAssignment({Key? key, this.saveCallback}) : super(key: key);
+  SettingsAssignmentView({Key? key, this.saveCallback}) : super(key: key);
   @override
-  _SettingsAssignmentState createState() =>
-      new _SettingsAssignmentState(saveCallback: saveCallback);
+  _SettingsAssignmentViewState createState() =>
+      new _SettingsAssignmentViewState(saveCallback: saveCallback);
 }
 
-class _SettingsAssignmentState extends State<SettingsAssignment> {
+class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
   final CallbackType? saveCallback;
   SceneOrder? buttons;
 
-  _SettingsAssignmentState({this.saveCallback, this.buttons});
+  _SettingsAssignmentViewState({this.saveCallback, this.buttons});
 
   @override
   Widget build(BuildContext context) {
