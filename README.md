@@ -8,7 +8,9 @@
 
 * [Web - featherbear.cc/obs-vix](http://featherbear.cc/obs-vix/)
 * [Windows]
-* [Android]
+* [Android (APK)](https://nightly.link/featherbear/obs-vix/workflows/flutter/master/obs-vix_CI_BUILD.apk.zip)
+
+<!-- This https://nightly.link site is pretty cool! -->
 
 ## Development
 
