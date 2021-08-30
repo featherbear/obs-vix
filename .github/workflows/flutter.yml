@@ -1,0 +1,44 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build-web:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: subosito/flutter-action@4389e6cbc6cb8a4b18c628ff96ff90be0e926aa8
+      with:
+        channel: master
+    - run: flutter doctor -v
+    - uses: actions/checkout@v2
+    - run: flutter pub get
+    - run: flutter build -v web
+    - name: Set page base
+      run: sed -i --regexp-extended 's/(<base href=")(.+?)(")/\1\/${{ github.event.repository.name }}\/\3/' ./build/web/index.html
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v2.3.1
+      env:
+        PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PUBLISH_BRANCH: gh-pages
+        PUBLISH_DIR: ./build/web
+  build-android:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: subosito/flutter-action@4389e6cbc6cb8a4b18c628ff96ff90be0e926aa8
+      with:
+        channel: master
+    - run: flutter doctor -v
+    - run: flutter pub get
+    - run: flutter build apk
+    - run: cp build\app\outputs\flutter-apk\app-release.apk obs-vix_${{ github.sha }}.apk
+    - name: Release
+      uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb
+      with:
+        files: obs-vix_${{ github.sha }}.apk
