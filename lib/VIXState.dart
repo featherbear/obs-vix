@@ -9,8 +9,7 @@ class VIXState extends InheritedWidget {
   Map get data => _data;
   final int version;
 
-  VIXState({required Widget child, required this.version, Key? key})
-      : super(child: child, key: key);
+  VIXState({required Widget child, required this.version, Key? key}) : super(child: child, key: key);
 
   static VIXState? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<VIXState>();
@@ -23,8 +22,7 @@ class VIXState extends InheritedWidget {
 }
 
 class _VIXStateProvider extends StatefulWidget {
-  static VIXState of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<VIXState>()!;
+  static VIXState of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<VIXState>()!;
 
   const _VIXStateProvider({required this.child, Key? key}) : super(key: key);
 
@@ -68,5 +66,4 @@ void updateVIXState(void Function(Map) fn) {
 }
 
 VIXStateData readVIXState() => _data;
-VIXStateData getVIXState(BuildContext context) =>
-    context.dependOnInheritedWidgetOfExactType<VIXState>()!.data;
+VIXStateData getVIXState(BuildContext context) => context.dependOnInheritedWidgetOfExactType<VIXState>()!.data;

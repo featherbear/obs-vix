@@ -8,8 +8,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 const uuid = Uuid();
 const mIDprefix = "obs-vix::";
-String B64_SHA256(String a, String b) =>
-    base64Encode(sha256.convert(utf8.encode(a + b)).bytes);
+String B64_SHA256(String a, String b) => base64Encode(sha256.convert(utf8.encode(a + b)).bytes);
 
 typedef RawCallbackFunction = Function(String data);
 typedef CallbackFunction = Function(dynamic data);
@@ -87,8 +86,7 @@ class OBSClient {
       if (password == null) throw AuthException("Password required");
       String chalResponse = B64_SHA256(B64_SHA256(password, salt), challenge);
 
-      var response = await this
-          .request(command: "Authenticate", params: {"auth": chalResponse});
+      var response = await this.request(command: "Authenticate", params: {"auth": chalResponse});
       if (response["status"] != 'ok') throw AuthException(response["error"]);
       return this;
     });
@@ -96,8 +94,7 @@ class OBSClient {
 
   dynamic get serverCapabilities => this._serverCapabilities;
 
-  Future<OBSClient> connect(
-      {required String host, required int port, String? password}) {
+  Future<OBSClient> connect({required String host, required int port, String? password}) {
     Uri? uri = Uri.tryParse('ws://$host:$port');
     if (uri == null) throw Exception("Invalid URI");
     return this._connect(uri, password: password);
@@ -108,8 +105,7 @@ class OBSClient {
   }
 
   Future<OBSClient> connectObject(ConnectionSettings settings) {
-    return this.connect(
-        host: settings.host, port: settings.port, password: settings.password);
+    return this.connect(host: settings.host, port: settings.port, password: settings.password);
   }
 
   void addEventListener(String eventName, CallbackFunction callback) {
@@ -124,8 +120,7 @@ class OBSClient {
   }
 
   void addRawListener(RawCallbackFunction callback, {bool snoop = false}) {
-    if (_rawCallbacks.contains(callback) ||
-        _rawCallbacksSnoop.contains(callback)) {
+    if (_rawCallbacks.contains(callback) || _rawCallbacksSnoop.contains(callback)) {
       return;
     }
     if (snoop) {
@@ -157,10 +152,7 @@ class OBSClient {
     _channel?.sink.add(s);
   }
 
-  Future<dynamic> request(
-      {required String command,
-      Map? params,
-      Function(dynamic)? callback}) async {
+  Future<dynamic> request({required String command, Map? params, Function(dynamic)? callback}) async {
     var id = uuid.v4();
     Map data = (params != null) ? Map.from(params) : new Map();
 

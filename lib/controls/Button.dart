@@ -21,15 +21,13 @@ class Button extends StatelessWidget {
   final String? label;
   final void Function()? onPress;
 
-  const Button({this.onPress, this.label, this.colour = COLOUR.BLANK, Key? key})
-      : super(key: key);
+  const Button({this.onPress, this.label, this.colour = COLOUR.BLANK, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: ElevatedButton(
-        style:
-            ElevatedButton.styleFrom(primary: resolveColourEnum(this.colour)),
+        style: ElevatedButton.styleFrom(primary: resolveColourEnum(this.colour)),
         child: Text(label ?? ""),
         onPressed: onPress,
       ),

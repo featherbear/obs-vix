@@ -17,8 +17,7 @@ class SettingsAssignmentView extends StatefulWidget {
   // : super(key: key);
 
   @override
-  _SettingsAssignmentViewState createState() => _SettingsAssignmentViewState(
-      saveCallback: this.saveCallback, buttons: this._buttons);
+  _SettingsAssignmentViewState createState() => _SettingsAssignmentViewState(saveCallback: this.saveCallback, buttons: this._buttons);
 }
 
 class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
@@ -47,17 +46,12 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
                               DropdownButton(
                                 value: entry.value,
                                 hint: Text("Select scene"),
-                                items: ['', ...(VIX["scenes"] ?? [])]
-                                    .cast<String>()
-                                    .map((e) {
-                                  return DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e.isNotEmpty ? e : "(none)"));
+                                items: ['', ...(VIX["scenes"] ?? [])].cast<String>().map((e) {
+                                  return DropdownMenuItem(value: e, child: Text(e.isNotEmpty ? e : "(none)"));
                                 }).toList(),
                                 onChanged: (String? s) {
                                   setState(() {
-                                    this.buttons![entry.key] =
-                                        s!.isEmpty ? null : s;
+                                    this.buttons![entry.key] = s!.isEmpty ? null : s;
                                   });
                                 },
                               )

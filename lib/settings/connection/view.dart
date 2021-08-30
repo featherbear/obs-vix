@@ -9,11 +9,9 @@ class SettingsConnectionView extends StatefulWidget {
   final void Function(ConnectionSettings settings)? saveCallback;
   final ConnectionSettings? prefill;
 
-  SettingsConnectionView({Key? key, this.prefill, this.saveCallback})
-      : super(key: key);
+  SettingsConnectionView({Key? key, this.prefill, this.saveCallback}) : super(key: key);
   @override
-  _SettingsConnectionViewState createState() => _SettingsConnectionViewState(
-      prefill: this.prefill, saveCallback: saveCallback);
+  _SettingsConnectionViewState createState() => _SettingsConnectionViewState(prefill: this.prefill, saveCallback: saveCallback);
 }
 
 class _SettingsConnectionViewState extends State<SettingsConnectionView> {
@@ -53,10 +51,7 @@ class _SettingsConnectionViewState extends State<SettingsConnectionView> {
               autocorrect: false,
               keyboardType: TextInputType.number,
               controller: portController,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(5)
-              ],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)],
               decoration: InputDecoration(labelText: 'Port'),
               autovalidateMode: AutovalidateMode.onUserInteraction,
               validator: (String? s) {
@@ -76,8 +71,7 @@ class _SettingsConnectionViewState extends State<SettingsConnectionView> {
               decoration: InputDecoration(
                   labelText: 'Password',
                   suffixIcon: IconButton(
-                      icon: Icon(
-                          _isObscure ? Icons.visibility : Icons.visibility_off),
+                      icon: Icon(_isObscure ? Icons.visibility : Icons.visibility_off),
                       onPressed: () {
                         setState(() {
                           _isObscure = !_isObscure;
@@ -88,17 +82,12 @@ class _SettingsConnectionViewState extends State<SettingsConnectionView> {
                 padding: EdgeInsets.all(15),
                 child: ElevatedButton(
                   onPressed: () {
-                    if (Uri.tryParse(
-                            'ws://${hostnameController.text}:${portController.text}') ==
-                        null) {
-                      throw Exception(
-                          "Lol we need to show the user an error or something");
+                    if (Uri.tryParse('ws://${hostnameController.text}:${portController.text}') == null) {
+                      throw Exception("Lol we need to show the user an error or something");
                     }
 
                     this.saveCallback?.call(ConnectionSettings(
-                        host: hostnameController.text,
-                        port: int.tryParse(portController.text) ?? 4444,
-                        password: passwordController.text));
+                        host: hostnameController.text, port: int.tryParse(portController.text) ?? 4444, password: passwordController.text));
                   },
                   child: Text("Save"),
                 ))

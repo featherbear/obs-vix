@@ -71,8 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
           port: 4444,
         );
       } else {
-        this._connectionSettings =
-            ConnectionSettings(host: host, port: port, password: password);
+        this._connectionSettings = ConnectionSettings(host: host, port: port, password: password);
       }
     });
   }
@@ -101,8 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _initOBSListeners() {
     client
       ..addEventListener("StudioModeSwitched", (data) async {
-        if (!data["new-state"])
-          this.client.request(command: "EnableStudioMode");
+        if (!data["new-state"]) this.client.request(command: "EnableStudioMode");
       })
       ..addEventListener("SwitchScenes", (data) async {
         updateVIXState((m) {
@@ -162,8 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
     String? targetScene = buttons[idx];
     if (targetScene == null) return; // Check if valid scene
 
-    client.request(
-        command: "SetPreviewScene", params: {"scene-name": targetScene});
+    client.request(command: "SetPreviewScene", params: {"scene-name": targetScene});
   }
 
   @override
@@ -186,8 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (!(evt is RawKeyDownEvent)) return;
 
           int keyCode = evt.logicalKey.keyId;
-          if (0x31 <= keyCode && keyCode <= 0x39)
-            return handleChangePreview(keyCode - 0x31);
+          if (0x31 <= keyCode && keyCode <= 0x39) return handleChangePreview(keyCode - 0x31);
 
           if (evt.logicalKey == LogicalKeyboardKey.space) {
             client.request(
@@ -231,30 +227,17 @@ class _MyHomePageState extends State<MyHomePage> {
                                     child: PageViewWrapper(
                                         title: "OBS Connection Settings",
                                         child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 15),
+                                            padding: EdgeInsets.symmetric(horizontal: 15),
                                             child: SettingsConnectionView(
                                               prefill: this._connectionSettings,
                                               saveCallback: (settings) async {
-                                                await SharedPreferences
-                                                        .getInstance()
-                                                    .then((prefs) =>
-                                                        Future.wait([
-                                                          prefs.setString(
-                                                              "obs::host",
-                                                              settings.host),
-                                                          prefs.setInt(
-                                                              "obs::port",
-                                                              settings.port),
-                                                          (settings.password ==
-                                                                  null)
-                                                              ? prefs.remove(
-                                                                  "obs::pass")
-                                                              : prefs.setString(
-                                                                  "obs::pass",
-                                                                  settings
-                                                                      .password!)
-                                                        ]));
+                                                await SharedPreferences.getInstance().then((prefs) => Future.wait([
+                                                      prefs.setString("obs::host", settings.host),
+                                                      prefs.setInt("obs::port", settings.port),
+                                                      (settings.password == null)
+                                                          ? prefs.remove("obs::pass")
+                                                          : prefs.setString("obs::pass", settings.password!)
+                                                    ]));
                                                 Navigator.pop(context);
                                                 client.connectObject(settings);
                                               },
@@ -271,12 +254,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                     child: PageViewWrapper(
                                         title: "VIX Interface Settings",
                                         child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 15),
-                                            child: provideVIXState(
-                                                SettingsAssignmentView(
-                                              buttons:
-                                                  readVIXState()["buttons"],
+                                            padding: EdgeInsets.symmetric(horizontal: 15),
+                                            child: provideVIXState(SettingsAssignmentView(
+                                              buttons: readVIXState()["buttons"],
                                               saveCallback: (buttons) {
                                                 updateVIXState((fn) {
                                                   fn["buttons"] = buttons;
@@ -314,9 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   onProgramEvent: (idx) {
                     String? targetScene = readVIXState()["buttons"][idx];
                     if (targetScene == null) return;
-                    client.request(
-                        command: "SetCurrentScene",
-                        params: {"scene-name": targetScene});
+                    client.request(command: "SetCurrentScene", params: {"scene-name": targetScene});
                   },
                 )),
                 Text(
