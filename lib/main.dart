@@ -141,8 +141,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<List<String>> _updateScenes() =>
-      client.request(command: "GetSceneList").then((dynamic resp) => resp["scenes"].map((dynamic e) => (e["name"])).toList().cast<String>());
+  List<String> __sceneResponseParser(dynamic resp) => resp["scenes"].map((dynamic e) => (e["name"])).toList().cast<String>();
+
+  Future<List<String>> _updateScenes() => client.request(command: "GetSceneList").then(__sceneResponseParser);
 
   void _onOBSConnect(OBSClient client) async {
     Map updates = {};
@@ -187,7 +188,9 @@ class _MyHomePageState extends State<MyHomePage> {
         // `scenes` doesn't appear inside the object?
         // obs-websocket 4.8.0
         // obs-studio-version 27.0.1
-        _updateScenes().then((scenes) => updateVIXState((m) => m["scenes"] = scenes));
+        // _updateScenes().then((scenes) => updateVIXState((m) => m["scenes"] = scenes));
+
+        updateVIXState((m) => m["scenes"] = __sceneResponseParser(resp));
       });
     // ..addEventListener("SceneItemVisibilityChanged", (data) async {
     //   // SceneItemAdded
