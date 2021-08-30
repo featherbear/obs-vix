@@ -194,14 +194,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 )),
             provideVIXState(PreviewProgramController(
               onPreviewEvent: (idx) {
-                client.request(
-                    command: "SetPreviewScene",
-                    params: {"scene-name": readVIXState()["buttons"][idx]});
+                    String? targetScene = readVIXState()["buttons"][idx];
+                    if (targetScene == null) return;
+                    client.request(
+                        command: "SetPreviewScene",
+                        params: {"scene-name": targetScene});
               },
               onProgramEvent: (idx) {
-                client.request(
-                    command: "SetCurrentScene",
-                    params: {"scene-name": readVIXState()["buttons"][idx]});
+                    String? targetScene = readVIXState()["buttons"][idx];
+                    if (targetScene == null) return;
+                    client.request(
+                        command: "SetCurrentScene",
+                        params: {"scene-name": targetScene});
               },
             )),
             Text(
