@@ -38,9 +38,11 @@ class _VIXStateProviderState extends State<_VIXStateProvider> {
   int _count = lastItem;
   _VIXStateProviderState() {
     _stateUpdaters.add(() {
+      if (!this.mounted) return false;
       setState(() {
         _count = lastItem;
       });
+      return true;
     });
   }
 
@@ -57,12 +59,12 @@ Widget provideVIXState(Widget widget, {Key? key}) {
   );
 }
 
-List _stateUpdaters = [];
+List<bool Function()> _stateUpdaters = [];
 
 void updateVIXState(void Function(Map) fn) {
   fn(_data);
   lastItem++;
-  _stateUpdaters.forEach((cb) => cb());
+  _stateUpdaters.retainWhere((cb) => cb());
 }
 
 VIXStateData readVIXState() => _data;
