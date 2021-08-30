@@ -201,7 +201,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  final OBSClient client = OBSClient()..addRawListener((data) => log(data));
+  final OBSClient client = OBSClient();
+  // ..addRawListener((data) => log(data));
 
   final focusNode = FocusNode()..requestFocus();
 
