@@ -31,9 +31,9 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
     final VIX = getVIXState(context);
 
     // Get scenes, and merge with previously selected scenes (that may no longer exist)
-    List<String> sceneList = VIX["scenes"] ?? [];
+    var sceneList = VIX["scenes"] ?? [];
     if (this.buttons != null) {
-      sceneList = [...sceneList, ...this.buttons!.where((s) => s != null).cast<String>()].toSet().toList();
+      sceneList = [...sceneList, ...this.buttons!.where((s) => s != null)].toSet().toList();
     }
 
     return Container(
