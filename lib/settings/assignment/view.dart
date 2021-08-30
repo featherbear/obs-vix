@@ -23,7 +23,7 @@ class _SettingsAssignmentState extends State<SettingsAssignment> {
 
   @override
   Widget build(BuildContext context) {
-    final VIX = getState(context);
+    final VIX = getVIXState(context);
 
     return new Container(
       child: new Column(

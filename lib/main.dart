@@ -83,26 +83,36 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       {
         client.request(command: "GetCurrentScene").then((data) {
-          updateState((m) {
+          updateVIXState((m) {
             m["activeProgram"] = data["name"];
           });
         });
         client.addEventListener("SwitchScenes", (data) async {
-          updateState((m) {
+          updateVIXState((m) {
             m["activeProgram"] = data["scene-name"];
           });
         });
       }
       {
         client.request(command: "GetPreviewScene").then((data) {
-          updateState((m) {
+          updateVIXState((m) {
             m["activePreview"] = data["name"];
           });
         });
 
         client.addEventListener("PreviewSceneChanged", (data) async {
-          updateState((m) {
+          updateVIXState((m) {
             m["activePreview"] = data["scene-name"];
+          });
+        });
+      }
+      {
+        client.addEventListener("TransitionBegin", (data) async {
+          updateVIXState((m) {
+            // Don't need to apply the preview, should be handled when PreviewSceneChange is received
+            // m["activePreview"] = data["from-scene"];
+
+            m["activeProgram"] = data["to-scene"];
           });
         });
       }
@@ -116,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
         void Function(dynamic) cb = (resp) {
           List<dynamic> scenes = resp["scenes"];
 
-          updateState((fn) {
+          updateVIXState((fn) {
             fn["scenes"] = scenes.map((e) => (e["name"])).toList();
           });
         };
@@ -161,9 +171,9 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             new Padding(
                 padding: EdgeInsets.symmetric(horizontal: 15),
-                child: provideState(SettingsAssignment(
+                child: provideVIXState(SettingsAssignment(
                   saveCallback: (buttons) {
-                    updateState((fn) {
+                    updateVIXState((fn) {
                       fn["buttons"] = buttons;
                     });
                   },
@@ -182,7 +192,18 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                   },
                 )),
-            provideState(PreviewProgramController()),
+            provideVIXState(PreviewProgramController(
+              onPreviewEvent: (idx) {
+                client.request(
+                    command: "SetPreviewScene",
+                    params: {"scene-name": readVIXState()["buttons"][idx]});
+              },
+              onProgramEvent: (idx) {
+                client.request(
+                    command: "SetCurrentScene",
+                    params: {"scene-name": readVIXState()["buttons"][idx]});
+              },
+            )),
             Text(
               'You have pushed the button this many times:',
             ),

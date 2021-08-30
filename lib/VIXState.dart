@@ -50,7 +50,7 @@ class _VIXStateProviderState extends State<_VIXStateProvider> {
   }
 }
 
-Widget provideState(Widget widget, {Key? key}) {
+Widget provideVIXState(Widget widget, {Key? key}) {
   return _VIXStateProvider(
     child: widget,
     key: key,
@@ -59,11 +59,12 @@ Widget provideState(Widget widget, {Key? key}) {
 
 List _stateUpdaters = [];
 
-void updateState(void Function(Map) fn) {
+void updateVIXState(void Function(Map) fn) {
   fn(_data);
   lastItem++;
   _stateUpdaters.forEach((cb) => cb());
 }
 
-VIXStateData getState(BuildContext context) =>
+VIXStateData readVIXState() => _data;
+VIXStateData getVIXState(BuildContext context) =>
     context.dependOnInheritedWidgetOfExactType<VIXState>()!.data;

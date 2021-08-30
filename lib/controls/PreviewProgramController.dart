@@ -4,26 +4,37 @@ import 'package:flutter/widgets.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/controls/Button.dart';
 
+typedef CallbackType = void Function(int);
+
 class PreviewProgramController extends StatefulWidget {
-  const PreviewProgramController({Key? key}) : super(key: key);
+  final CallbackType? onProgramEvent;
+  final CallbackType? onPreviewEvent;
+  const PreviewProgramController(
+      {this.onProgramEvent, this.onPreviewEvent, Key? key})
+      : super(key: key);
 
   @override
   _PreviewProgramControllerState createState() =>
-      _PreviewProgramControllerState();
+      _PreviewProgramControllerState(
+          onProgramEvent: this.onProgramEvent,
+          onPreviewEvent: this.onPreviewEvent);
 }
 
 class _PreviewProgramControllerState extends State<PreviewProgramController> {
-  Button generateButton(int idx, {String? label, COLOUR? colour}) {
-    void Function() cb = () {
-      log(idx.toString());
-    };
+  final CallbackType? onProgramEvent;
+  final CallbackType? onPreviewEvent;
+  _PreviewProgramControllerState({this.onProgramEvent, this.onPreviewEvent});
+
+  Button generateButton(int idx,
+      {String? label, COLOUR? colour, CallbackType? onPressEvent}) {
+    void Function() cb = () => onPressEvent?.call(idx);
 
     if (colour == null) return new Button(label: label, onPress: cb);
     return new Button(label: label, onPress: cb, colour: colour);
   }
 
-  List<Widget> generateRowChildren(
-      VIXStateData VIX, String stateKey, COLOUR activeColour) {
+  List<Widget> generateRowChildren(VIXStateData VIX, String stateKey,
+      COLOUR activeColour, CallbackType? onPressEvent) {
     String target = VIX[stateKey] ?? "";
     List<String?> buttonMaps = VIX["buttons"] ?? [];
 
@@ -31,28 +42,29 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
         .asMap()
         .entries
         .map((scene) => (scene.value == target)
-            ? generateButton(
-                scene.key,
+            ? generateButton(scene.key,
                 label: scene.value,
                 colour: activeColour,
-              )
-            : generateButton(scene.key, label: scene.value))
+                onPressEvent: onPressEvent)
+            : generateButton(scene.key,
+                label: scene.value, onPressEvent: onPressEvent))
         .toList()
         .cast<Widget>();
   }
 
   @override
   Widget build(BuildContext context) {
-    final VIX = getState(context);
+    final VIX = getVIXState(context);
 
     return Container(
       child: new Column(
         children: [
           new Row(
-              children:
-                  generateRowChildren(VIX, "activePreview", COLOUR.GREEN)),
+              children: generateRowChildren(
+                  VIX, "activePreview", COLOUR.GREEN, this.onPreviewEvent)),
           new Row(
-              children: generateRowChildren(VIX, "activeProgram", COLOUR.RED)),
+              children: generateRowChildren(
+                  VIX, "activeProgram", COLOUR.RED, this.onProgramEvent)),
           new Text(VIX["activeScene"] ?? "nope")
         ],
       ),
