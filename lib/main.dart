@@ -238,6 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                           ? prefs.remove("obs::pass")
                                                           : prefs.setString("obs::pass", settings.password!)
                                                     ]));
+                                                this._connectionSettings = settings;
                                                 Navigator.pop(context);
                                                 client.connectObject(settings);
                                               },
