@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'OBS Vix - Vision Mix',
+      title: 'Vix :: OBS Vision Mixer',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.grey,
       ),
-      home: MyHomePage(title: 'OBS Vix - Vision Mix'),
+      home: MyHomePage(title: 'Vix :: OBS Vision Mixer'),
     );
   }
 }

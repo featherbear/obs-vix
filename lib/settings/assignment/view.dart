@@ -37,68 +37,62 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
     }
 
     return Container(
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Column(
-                children: this
-                        .buttons
-                        ?.asMap()
-                        .entries
-                        .map((entry) => Row(children: [
-                              Text('Button ${entry.key + 1} = '),
-                              DropdownButton(
-                                value: entry.value,
-                                hint: Text("Select scene"),
-                                items: ['', ...sceneList].cast<String>().map((e) {
-                                  return DropdownMenuItem(value: e, child: Text(e.isNotEmpty ? e : "(none)"));
-                                }).toList(),
-                                onChanged: (String? s) {
-                                  setState(() {
-                                    this.buttons![entry.key] = s!.isEmpty ? null : s;
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      this.buttons?.removeAt(entry.key);
-                                    });
-                                  },
-                                  splashRadius: 20,
-                                  icon: Icon(Icons.delete))
-                            ]))
-                        .toList()
-                        // new Text(
-                        //     '${entry.key + 1}. ${entry.value ?? "(empty)"}'))
-                        // .toList()
-                        .cast<Widget>() ??
-                    []),
-            Padding(
-                padding: EdgeInsets.all(15),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (this.buttons == null) this.buttons = [];
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+        Text("Button Assignment", style: TextStyle(fontSize: 24)),
+        Text("Manage scene button assignments", style: TextStyle(color: Colors.grey)),
+        Column(
+            children: this
+                    .buttons
+                    ?.asMap()
+                    .entries
+                    .map((entry) => Row(children: [
+                          Text('Button ${entry.key + 1} = '),
+                          DropdownButton(
+                            value: entry.value,
+                            hint: Text("Select scene"),
+                            items: ['', ...sceneList].cast<String>().map((e) {
+                              return DropdownMenuItem(value: e, child: Text(e.isNotEmpty ? e : "(none)"));
+                            }).toList(),
+                            onChanged: (String? s) {
+                              setState(() {
+                                this.buttons![entry.key] = s!.isEmpty ? null : s;
+                              });
+                            },
+                          ),
+                          IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  this.buttons?.removeAt(entry.key);
+                                });
+                              },
+                              splashRadius: 20,
+                              icon: Icon(Icons.delete))
+                        ]))
+                    .toList()
+                    .cast<Widget>() ??
+                []),
+        Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: ElevatedButton(
+              onPressed: () {
+                if (this.buttons == null) this.buttons = [];
 
-                    setState(() {
-                      this.buttons!.add(null);
-                    });
-                  },
-                  child: Text("Add button"),
-                )),
-            Padding(
-                padding: EdgeInsets.all(15),
-                child: ElevatedButton(
-                  onPressed: () {
-                    this.saveCallback?.call(this.buttons ?? []);
-                  },
-                  child: Text("Save"),
-                ))
-          ]),
-      padding: const EdgeInsets.all(0.0),
-      alignment: Alignment.center,
+                setState(() {
+                  this.buttons!.add(null);
+                });
+              },
+              child: Text("Add button"),
+            )),
+        Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: ElevatedButton(
+              onPressed: () {
+                this.saveCallback?.call(this.buttons ?? []);
+              },
+              child: Text("Save"),
+            ))
+      ]),
+      padding: EdgeInsets.symmetric(vertical: 15),
     );
   }
 }
