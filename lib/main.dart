@@ -115,19 +115,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _tryConnect() async {
-    try {
-      await this.client.connectObject(this._connectionSettings);
-    } on AuthException catch (e) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(title: Text("Authentication Error"), content: Text("Connection failed: ${e.message}")));
-    } on SocketException catch (e) {
-      OSError? osErr = e.osError;
+    void showConfigErrorDialog(String title, String description) {
       showDialog(
           context: context,
           builder: (BuildContext context) => AlertDialog(
-                title: Text("Connection Error"),
-                content: Text("Could not connect to the OBS server"),
+                title: Text(title),
+                content: Text(description),
                 actions: [
                   TextButton(
                       onPressed: () {
@@ -137,6 +130,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Padding(padding: EdgeInsets.all(5), child: Text("Edit Settings")))
                 ],
               ));
+    }
+
+    try {
+      await this.client.connectObject(this._connectionSettings);
+    } on AuthException catch (e) {
+      showConfigErrorDialog("Authentication Error", "Connection failed: ${e.message}");
+    } on SocketException catch (e) {
+      showConfigErrorDialog("Connection Error", "Could not connect to the OBS server");
     }
   }
 
