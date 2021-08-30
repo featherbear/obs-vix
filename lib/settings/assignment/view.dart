@@ -60,7 +60,15 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
                                     this.buttons![entry.key] = s!.isEmpty ? null : s;
                                   });
                                 },
-                              )
+                              ),
+                              IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      this.buttons?.removeAt(entry.key);
+                                    });
+                                  },
+                                  splashRadius: 20,
+                                  icon: Icon(Icons.delete))
                             ]))
                         .toList()
                         // new Text(
