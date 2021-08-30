@@ -141,6 +141,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<List<String>> _updateScenes() =>
+      client.request(command: "GetSceneList").then((dynamic resp) => resp["scenes"].map((dynamic e) => (e["name"])).toList().cast<String>());
+
   void _onOBSConnect(OBSClient client) async {
     Map updates = {};
 
@@ -152,9 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
       client.request(command: "GetPreviewScene").then((data) {
         updates["activePreview"] = data["name"];
       }),
-      client.request(command: "GetSceneList").then((resp) {
-        updates["scenes"] = resp["scenes"].map((e) => (e["name"])).toList();
-      })
+      _updateScenes().then((scenes) => updates["scenes"] = scenes)
     ]);
 
     updateVIXState((data) => data.addEntries(updates.entries));
@@ -183,11 +184,10 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       })
       ..addEventListener("ScenesChanged", (resp) {
-        List<dynamic> scenes = resp["scenes"];
-
-        updateVIXState((m) {
-          m["scenes"] = scenes.map((e) => (e["name"])).toList();
-        });
+        // `scenes` doesn't appear inside the object?
+        // obs-websocket 4.8.0
+        // obs-studio-version 27.0.1
+        _updateScenes().then((scenes) => updateVIXState((m) => m["scenes"] = scenes));
       });
     // ..addEventListener("SceneItemVisibilityChanged", (data) async {
     //   // SceneItemAdded
@@ -201,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  final OBSClient client = OBSClient();
+  final OBSClient client = OBSClient()..addRawListener((data) => log(data));
 
   final focusNode = FocusNode()..requestFocus();
 
