@@ -1,12 +1,12 @@
 import 'dart:developer';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:obs_vix/OBSClient.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/controls/PreviewProgramController.dart';
 import 'package:obs_vix/settings/assignment/view.dart';
 import 'package:obs_vix/settings/connection/view.dart';
-import 'package:web_socket_channel/io.dart';
 
 void main() {
   runApp(MyApp());
@@ -107,14 +107,16 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
       {
-        client.addEventListener("TransitionBegin", (data) async {
+        void Function(dynamic) cb = (resp) {
           updateVIXState((m) {
             // Don't need to apply the preview, should be handled when PreviewSceneChange is received
             // m["activePreview"] = data["from-scene"];
 
-            m["activeProgram"] = data["to-scene"];
+            m["activeProgram"] = resp["to-scene"];
           });
-        });
+        };
+        client.addEventListener("TransitionBegin", cb);
+        // client.addEventListener("TransitionEnd", cb);
       }
 
       client.addEventListener("SceneItemVisibilityChanged", (data) async {
@@ -135,6 +137,20 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
 
+  final focusNode = FocusNode()..requestFocus();
+
+  void handleChangePreview(int idx) {
+    List<String?>? buttons = readVIXState()["buttons"];
+    if (buttons == null) return; // Check if un-init
+    if (buttons.length <= idx) return; // Check if valid
+
+    String? targetScene = buttons[idx];
+    if (targetScene == null) return; // Check if valid scene
+
+    client.request(
+        command: "SetPreviewScene", params: {"scene-name": targetScene});
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -143,87 +159,119 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
-                child: provideVIXState(SettingsAssignment(
-                  saveCallback: (buttons) {
-                    updateVIXState((fn) {
-                      fn["buttons"] = buttons;
-                    });
-                  },
-                ))),
-            new Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
-                child: SettingsConnection(
-                  saveCallback: (settings) {
-                    Uri? _ =
-                        Uri.tryParse('ws://${settings.host}:${settings.port}');
-                    if (_ != null) {
-                      setState(() {
-                        obsAddress = _;
-                      });
-                      client.connectURI(_);
-                    }
-                  },
-                )),
-            provideVIXState(PreviewProgramController(
-              onPreviewEvent: (idx) {
-                    String? targetScene = readVIXState()["buttons"][idx];
-                    if (targetScene == null) return;
-                    client.request(
-                        command: "SetPreviewScene",
-                        params: {"scene-name": targetScene});
-              },
-              onProgramEvent: (idx) {
+    return RawKeyboardListener(
+        focusNode: focusNode,
+        onKey: (evt) {
+          // if (kIsWeb) {
+          //   log("Web");
+          // } else {
+          //   log('${Platform.isWindows}');
+          // }
+
+          if (!(evt is RawKeyDownEvent)) return;
+
+          int keyCode = evt.logicalKey.keyId;
+          if (0x31 <= keyCode && keyCode <= 0x39)
+            return handleChangePreview(keyCode - 0x31);
+
+          if (evt.logicalKey == LogicalKeyboardKey.space) {
+            client.request(
+                command: "TransitionToProgram",
+                params: {
+                  "with-transition": {"name": "Fade", "duration": 300}
+                },
+                callback: (e) {
+                  log(e.toString());
+                });
+          }
+
+          if (evt.logicalKey == LogicalKeyboardKey.enter) {
+            focusNode.requestFocus();
+            client.request(
+                command: "TransitionToProgram",
+                params: {
+                  "with-transition": {"name": "Cut", "duration": 0}
+                },
+                callback: (e) {
+                  log(e.toString());
+                });
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            // Here we take the value from the MyHomePage object that was created by
+            // the App.build method, and use it to set our appbar title.
+            title: Text(widget.title),
+          ),
+          body: Center(
+            // Center is a layout widget. It takes a single child and positions it
+            // in the middle of the parent.
+            child: Column(
+              // Column is also a layout widget. It takes a list of children and
+              // arranges them vertically. By default, it sizes itself to fit its
+              // children horizontally, and tries to be as tall as its parent.
+              //
+              // Invoke "debug painting" (press "p" in the console, choose the
+              // "Toggle Debug Paint" action from the Flutter Inspector in Android
+              // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+              // to see the wireframe for each widget.
+              //
+              // Column has various properties to control how it sizes itself and
+              // how it positions its children. Here we use mainAxisAlignment to
+              // center the children vertically; the main axis here is the vertical
+              // axis because Columns are vertical (the cross axis would be
+              // horizontal).
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                new Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    child: provideVIXState(SettingsAssignment(
+                      saveCallback: (buttons) {
+                        updateVIXState((fn) {
+                          fn["buttons"] = buttons;
+                        });
+                      },
+                    ))),
+                new Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    child: SettingsConnection(
+                      saveCallback: (settings) {
+                        Uri? _ = Uri.tryParse(
+                            'ws://${settings.host}:${settings.port}');
+                        if (_ != null) {
+                          setState(() {
+                            obsAddress = _;
+                          });
+                          client.connectURI(_);
+                        }
+                      },
+                    )),
+                provideVIXState(PreviewProgramController(
+                  onPreviewEvent: handleChangePreview,
+                  onProgramEvent: (idx) {
                     String? targetScene = readVIXState()["buttons"][idx];
                     if (targetScene == null) return;
                     client.request(
                         command: "SetCurrentScene",
                         params: {"scene-name": targetScene});
-              },
-            )),
-            Text(
-              'You have pushed the button this many times:',
+                  },
+                )),
+                Text(
+                  'You have pushed the button this many times:',
+                ),
+                Text(
+                  '$_counter',
+                  style: Theme.of(context).textTheme.headline4,
+                ),
+                Text(obsAddress?.toString() ?? ""),
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-            Text(obsAddress?.toString() ?? ""),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _incrementCounter,
+            tooltip: 'Increment',
+            child: Icon(Icons.add),
+          ), // This trailing comma makes auto-formatting nicer for build methods.
+        ));
   }
 }
