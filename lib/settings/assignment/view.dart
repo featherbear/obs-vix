@@ -31,10 +31,9 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
     final VIX = getVIXState(context);
 
     // Get scenes, and merge with previously selected scenes (that may no longer exist)
-    var sceneList = VIX["scenes"] ?? [];
-    if (this.buttons != null) {
-      sceneList = [...sceneList, ...this.buttons!.where((s) => s != null)].toSet().toList();
-    }
+    List sceneList = VIX["scenes"] ?? [];
+    if (this.buttons != null) sceneList = [...sceneList, ...this.buttons!.where((s) => s != null)].toSet().toList();
+    sceneList.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
     return Container(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
