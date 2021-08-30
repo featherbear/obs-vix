@@ -37,8 +37,12 @@ jobs:
     - run: flutter doctor -v
     - run: flutter pub get
     - run: flutter build apk
-    - run: cp build/app/outputs/flutter-apk/app-release.apk obs-vix_${{ github.sha }}.apk
-    - name: Release
-      uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb
+    - uses: actions/upload-artifact@v2
       with:
-        files: obs-vix_${{ github.sha }}.apk
+        name: obs-vix_${{ github.sha }}.apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+    # - run: cp build/app/outputs/flutter-apk/app-release.apk obs-vix_${{ github.sha }}.apk
+    # - name: Release
+    #   uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb
+    #   with:
+    #     files: obs-vix_${{ github.sha }}.apk
