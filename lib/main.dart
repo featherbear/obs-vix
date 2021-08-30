@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.grey,
       ),
       home: MyHomePage(title: 'OBS Vix - Vision Mix'),
     );
@@ -83,12 +84,61 @@ class _MyHomePageState extends State<MyHomePage> {
     }).then((_) {
       this._initOBSListeners();
       this.client.setConnectCallback(this._onOBSConnect);
-
-      this.client.connectObject(this._connectionSettings).catchError((lol) {});
+      _tryConnect();
     });
   }
 
   late ConnectionSettings _connectionSettings;
+
+  void showConnectionSettingsPage() {
+    Navigator.push(
+        context,
+        PageTransition(
+            type: PageTransitionType.fade,
+            child: PageViewWrapper(
+                title: "OBS Connection Settings",
+                child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    child: SettingsConnectionView(
+                      prefill: this._connectionSettings,
+                      saveCallback: (settings) {
+                        SharedPreferences.getInstance().then((prefs) => Future.wait([
+                              prefs.setString("obs::host", settings.host),
+                              prefs.setInt("obs::port", settings.port),
+                              (settings.password == null) ? prefs.remove("obs::pass") : prefs.setString("obs::pass", settings.password!)
+                            ]));
+                        this._connectionSettings = settings;
+                        Navigator.pop(context);
+                        this._tryConnect();
+                      },
+                    )))));
+  }
+
+  void _tryConnect() async {
+    try {
+      await this.client.connectObject(this._connectionSettings);
+    } on AuthException catch (e) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(title: Text("Authentication Error"), content: Text("Connection failed: ${e.message}")));
+    } on SocketException catch (e) {
+      OSError? osErr = e.osError;
+      showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+                title: Text("Connection Error"),
+                content: Text("Could not connect to the OBS server"),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        this.showConnectionSettingsPage();
+                      },
+                      child: Padding(padding: EdgeInsets.all(5), child: Text("Edit Settings")))
+                ],
+              ));
+    }
+  }
 
   void _onOBSConnect(OBSClient client) async {
     Map updates = {};
@@ -152,10 +202,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final OBSClient client = OBSClient();
 
-  // ..addRawListener((data) {
-  //   log(data);
-  //
-
   final focusNode = FocusNode()..requestFocus();
 
   void handleChangePreview(int idx) {
@@ -180,38 +226,22 @@ class _MyHomePageState extends State<MyHomePage> {
     return RawKeyboardListener(
         focusNode: focusNode,
         onKey: (evt) {
-          // if (kIsWeb) {
-          //   log("Web");
-          // } else {
-          //   log('${Platform.isWindows}');
-          // }
-
           if (!(evt is RawKeyDownEvent)) return;
 
           int keyCode = evt.logicalKey.keyId;
           if (0x31 <= keyCode && keyCode <= 0x39) return handleChangePreview(keyCode - 0x31);
 
           if (evt.logicalKey == LogicalKeyboardKey.space) {
-            client.request(
-                command: "TransitionToProgram",
-                params: {
-                  "with-transition": {"name": "Fade", "duration": 300}
-                },
-                callback: (e) {
-                  log(e.toString());
-                });
+            client.request(command: "TransitionToProgram", params: {
+              "with-transition": {"name": "Fade", "duration": 300}
+            });
           }
 
           if (evt.logicalKey == LogicalKeyboardKey.enter) {
             focusNode.requestFocus();
-            client.request(
-                command: "TransitionToProgram",
-                params: {
-                  "with-transition": {"name": "Cut", "duration": 0}
-                },
-                callback: (e) {
-                  log(e.toString());
-                });
+            client.request(command: "TransitionToProgram", params: {
+              "with-transition": {"name": "Cut", "duration": 0}
+            });
           }
         },
         child: Scaffold(
@@ -225,31 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemBuilder: (context) => [
                         PopupMenuItem(
                           child: Text("Connection Settings"),
-                          value: () => {
-                            Navigator.push(
-                                context,
-                                PageTransition(
-                                    type: PageTransitionType.fade,
-                                    child: PageViewWrapper(
-                                        title: "OBS Connection Settings",
-                                        child: Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 15),
-                                            child: SettingsConnectionView(
-                                              prefill: this._connectionSettings,
-                                              saveCallback: (settings) {
-                                                SharedPreferences.getInstance().then((prefs) => Future.wait([
-                                                      prefs.setString("obs::host", settings.host),
-                                                      prefs.setInt("obs::port", settings.port),
-                                                      (settings.password == null)
-                                                          ? prefs.remove("obs::pass")
-                                                          : prefs.setString("obs::pass", settings.password!)
-                                                    ]));
-                                                this._connectionSettings = settings;
-                                                Navigator.pop(context);
-                                                client.connectObject(settings);
-                                              },
-                                            )))))
-                          },
+                          value: this.showConnectionSettingsPage,
                         ),
                         PopupMenuItem(
                           child: Text("Interface Settings"),
@@ -259,7 +265,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 PageTransition(
                                     type: PageTransitionType.fade,
                                     child: PageViewWrapper(
-                                        title: "VIX Interface Settings",
+                                        title: "Vix Interface Settings",
                                         child: Padding(
                                             padding: EdgeInsets.symmetric(horizontal: 15),
                                             child: provideVIXState(SettingsAssignmentView(
