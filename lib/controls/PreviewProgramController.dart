@@ -19,11 +19,16 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
   final CallbackType? onPreviewEvent;
   _PreviewProgramControllerState({this.onProgramEvent, this.onPreviewEvent});
 
-  Button generateButton(int idx, {String? label, COLOUR? colour, CallbackType? onPressEvent}) {
+  Widget generateButton(int idx, {String? label, COLOUR? colour, CallbackType? onPressEvent}) {
     void Function() cb = () => onPressEvent?.call(idx);
 
     if (colour == null) return new Button(label: label, onPress: cb);
     return new Button(label: label, onPress: cb, colour: colour);
+  }
+
+  final double PAD_SIZE = 15;
+  Widget padIt(Widget widget) {
+    return Padding(padding: EdgeInsets.only(right: PAD_SIZE), child: widget);
   }
 
   List<Widget> generateRowChildren(VIXStateData VIX, String stateKey, COLOUR activeColour, CallbackType? onPressEvent) {
@@ -34,8 +39,8 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
         .asMap()
         .entries
         .map((scene) => (scene.value == target)
-            ? generateButton(scene.key, label: scene.value, colour: activeColour, onPressEvent: onPressEvent)
-            : generateButton(scene.key, label: scene.value, onPressEvent: onPressEvent))
+            ? padIt(generateButton(scene.key, label: scene.value, colour: activeColour, onPressEvent: onPressEvent))
+            : padIt(generateButton(scene.key, label: scene.value, onPressEvent: onPressEvent)))
         .toList()
         .cast<Widget>();
   }
@@ -47,7 +52,9 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
     return Container(
       child: new Column(
         children: [
-          new Row(children: generateRowChildren(VIX, "activePreview", COLOUR.GREEN, this.onPreviewEvent)),
+          new Padding(
+              padding: EdgeInsets.only(bottom: PAD_SIZE),
+              child: new Row(children: generateRowChildren(VIX, "activePreview", COLOUR.GREEN, this.onPreviewEvent))),
           new Row(children: generateRowChildren(VIX, "activeProgram", COLOUR.RED, this.onProgramEvent)),
         ],
       ),

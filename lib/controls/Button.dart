@@ -26,12 +26,13 @@ class Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(primary: resolveColourEnum(this.colour)),
-        child: Text(VIXUtils.processLabel(label)),
-        onPressed: onPress,
-      ),
-    );
+    return SizedBox(
+        height: 65,
+        width: 65,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(primary: resolveColourEnum(this.colour)),
+          child: Text(VIXUtils.processLabel(label)),
+          onPressed: onPress,
+        ));
   }
 }
