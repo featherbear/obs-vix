@@ -6,6 +6,7 @@ import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/VIXUtils.dart';
 import 'package:obs_vix/settings/assignment/data.dart';
 import 'package:flutter_number_picker/flutter_number_picker.dart';
+import 'package:obs_vix/utils.dart';
 
 typedef CallbackType = void Function(AssignmentSettings);
 
@@ -34,8 +35,7 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
     final VIX = getVIXState(context);
 
     // Get scenes, and merge with previously selected scenes (that may no longer exist)
-    List sceneList = [...VIX["scenes"] ?? [], ...data.buttons.where((s) => s != null)].toSet().toList();
-    sceneList.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    List sceneList = StringSort([...VIX["scenes"] ?? [], ...data.buttons.where((s) => s != null)].toSet().toList().cast<String>());
 
     List<Widget> _headSub(String head, String sub) => [Text(head, style: TextStyle(fontSize: 24)), Text(sub, style: TextStyle(color: Colors.grey))];
 
