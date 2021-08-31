@@ -1,0 +1,71 @@
+import 'dart:async';
+import 'dart:developer';
+
+import 'package:flutter/widgets.dart';
+
+class SourceView extends StatelessWidget {
+  SourceView({Key? key, required this.sourceName}) : super(key: key);
+  String? sourceName;
+  _SourceView _elem = _SourceView();
+
+  @override
+  Widget build(BuildContext context) {
+    log(("do build stateless"));
+    return _elem;
+  }
+}
+
+// import 'dart:async';
+// import 'dart:developer';
+
+// import 'package:flutter/widgets.dart';
+// import 'package:obs_vix/VIXState.dart';
+
+class _SourceView extends StatefulWidget {
+  String? sourceName;
+  _SourceView({Key? key, this.sourceName}) : super(key: key);
+
+  updateSource(String sourceName) {
+    state.updateSource(sourceName);
+  }
+
+  _SourceViewState state = _SourceViewState();
+
+  @override
+  _SourceViewState createState() => state;
+}
+
+class _SourceViewState extends State<_SourceView> {
+  String? sourceName;
+  _SourceViewState({this.sourceName}) {
+    log("State init ${this.sourceName}");
+  }
+
+  updateSource(String? sourceName) {
+    setState(() {
+      this.sourceName = sourceName;
+    });
+  }
+
+  Image? _image;
+
+  void a() {
+    Timer.periodic(Duration(milliseconds: 500), (timer) {
+      // this.client.request(command: "TakeSourceScreenshot", params: {"embedPictureFormat": "jpg"}).then((r) {
+      //   setState(() {
+      //     this._image = Image.memory(
+      //       UriData.parse(r["img"]).contentAsBytes(),
+      //       gaplessPlayback: true,
+      //     );
+      //     // this.image = Uri.dataFromString().
+      //   });
+      // });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    log('do build ${this.sourceName}');
+    return Container(child: this._image != null ? this._image! : null);
+  }
+}

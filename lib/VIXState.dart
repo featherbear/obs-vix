@@ -57,6 +57,22 @@ Widget provideVIXState(Widget widget, {Key? key}) {
   );
 }
 
+typedef builderFunction = Widget Function(BuildContext, VIXStateData);
+
+Widget buildVIXProvider(builderFunction builder) {
+  return provideVIXState(_Stateless(builder));
+}
+
+class _Stateless extends StatelessWidget {
+  final builderFunction builder;
+  const _Stateless(this.builder, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return this.builder(context, getVIXState(context));
+  }
+}
+
 List<bool Function()> _stateUpdaters = [];
 
 void updateVIXState(void Function(Map) fn) {

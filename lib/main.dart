@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,8 @@ import 'package:obs_vix/VIXClient.dart';
 import 'package:obs_vix/PageViewWrapper.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/controls/PreviewProgramController.dart';
+import 'package:obs_vix/controls/ProgramView.dart';
+import 'package:obs_vix/controls/SourceView.dart';
 import 'package:obs_vix/settings/assignment/view.dart';
 import 'package:obs_vix/settings/connection/data.dart';
 import 'package:obs_vix/settings/connection/view.dart';
@@ -83,7 +86,22 @@ class _MyHomePageState extends State<MyHomePage> {
         m["buttons"] = (prefs.getStringList("vix::buttons") ?? []).map((s) => s.isNotEmpty ? s : null).toList();
       });
     }).then((_) {
-      _tryConnect();
+      _tryConnect().then((_) {
+        {
+          // TODO: reeee
+          setState(() {
+            sourceViewer.init(this.client);
+          });
+
+          this.client
+            ..addEventListener("SwitchScenes", (data) {
+              sourceViewer.updateSource(data["scene-name"]);
+            })
+            ..addEventListener("PreviewSceneChanged", (data) {
+              sourceViewer.updateSource(data["scene-name"]);
+            });
+        }
+      });
     });
   }
 
@@ -113,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     )))));
   }
 
-  void _tryConnect() async {
+  Future _tryConnect() async {
     void showConfigErrorDialog(String title, String description) {
       showDialog(
           context: context,
@@ -150,6 +168,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final VIXClient client = VIXClient(); // ..addRawListener((data) => log(data));
 
   final focusNode = FocusNode()..requestFocus();
+
+
+  SourceView sourceViewer = SourceView();
 
   @override
   Widget build(BuildContext context) {
@@ -240,6 +261,10 @@ class _MyHomePageState extends State<MyHomePage> {
               // horizontal).
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                sourceViewer,
+
+                // provideVIXState(ProgramView(this.client)),
+                // buildVIXProvider((context, data) => SourceView(sourceName: data["activeProgram"])),
                 provideVIXState(PreviewProgramController(
                   onPreviewEvent: this.client.handleChangePreview,
                   onProgramEvent: (idx) {
