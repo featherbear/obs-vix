@@ -113,10 +113,10 @@ class OBSClient {
         throw AuthException(response["error"]);
       }
       return this;
-    }).then((client) {
+    }).then((client) async {
       log("OBS client connected to ${this.uri.toString()}");
 
-      Future.wait(this._connectCallbacks.map((fn) => Future.sync(() => fn(this))));
+      await Future.wait(this._connectCallbacks.map((fn) => Future.sync(() => fn(this))));
 
       // Future.sync(() => this._connectCallback?.call(client));
 
