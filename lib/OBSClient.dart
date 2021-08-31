@@ -1,15 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:html' as HTML show WebSocket;
-import 'dart:io' as IO show WebSocket;
 
 import 'package:crypto/crypto.dart';
+import 'package:obs_vix/ws_compat/WSCompat.dart';
 import 'package:uuid/uuid.dart';
 import 'package:obs_vix/settings/connection/data.dart';
-import 'package:web_socket_channel/html.dart';
-import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 const uuid = Uuid();
@@ -69,10 +65,7 @@ class OBSClient {
 
     _uri = uri;
 
-    _channel = kIsWeb
-        ? HtmlWebSocketChannel(HTML.WebSocket(_uri.toString()))
-        : IOWebSocketChannel(await IO.WebSocket.connect(_uri.toString(), headers: {"User-Agent": "obs-vix"}));
-
+    _channel = await WSCompat.connect(uri);
     _channel!.stream.listen((event) {
       _alertRawListeners(event, snoop: true);
 
@@ -107,11 +100,18 @@ class OBSClient {
       if (!r["authRequired"]) return this;
       String challenge = r['challenge'];
       String salt = r['salt'];
-      if (password == null) throw AuthException("Password required");
+      if (password == null) {
+        this.close();
+        throw AuthException("Password required");
+      }
+
       String chalResponse = B64_SHA256(B64_SHA256(password, salt), challenge);
 
       var response = await this.request(command: "Authenticate", params: {"auth": chalResponse});
-      if (response["status"] != 'ok') throw AuthException(response["error"]);
+      if (response["status"] != 'ok') {
+        this.close();
+        throw AuthException(response["error"]);
+      }
       return this;
     }).then((client) {
       log("OBS client connected to ${this.uri.toString()}");
