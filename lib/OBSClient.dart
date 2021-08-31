@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:html' as HTML show WebSocket;
+import 'dart:io' as IO show WebSocket;
 
 import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 import 'package:obs_vix/settings/connection/data.dart';
+import 'package:web_socket_channel/html.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -65,7 +68,11 @@ class OBSClient {
     this._init();
 
     _uri = uri;
-    _channel = IOWebSocketChannel(await WebSocket.connect(_uri.toString(), headers: {"User-Agent": "obs-vix"}));
+
+    _channel = kIsWeb
+        ? HtmlWebSocketChannel(HTML.WebSocket(_uri.toString()))
+        : IOWebSocketChannel(await IO.WebSocket.connect(_uri.toString(), headers: {"User-Agent": "obs-vix"}));
+
     _channel!.stream.listen((event) {
       _alertRawListeners(event, snoop: true);
 
