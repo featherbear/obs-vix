@@ -21,7 +21,7 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
   @override
   Widget build(BuildContext context) {
     final VIX = getVIXState(context);
-    var buttons = VIX["buttons"] ?? [];
+    List<String?> buttons = VIX["buttons"] ?? [];
     return Container(
       child: new Column(
         children: [

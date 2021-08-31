@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,8 +8,8 @@ import 'package:obs_vix/VIXClient.dart';
 import 'package:obs_vix/PageViewWrapper.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/controls/PreviewProgramController.dart';
-import 'package:obs_vix/controls/ProgramView.dart';
 import 'package:obs_vix/controls/SourceView.dart';
+import 'package:obs_vix/settings/assignment/data.dart';
 import 'package:obs_vix/settings/assignment/view.dart';
 import 'package:obs_vix/settings/connection/data.dart';
 import 'package:obs_vix/settings/connection/view.dart';
@@ -169,7 +168,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final focusNode = FocusNode()..requestFocus();
 
-
   SourceView sourceViewer = SourceView();
 
   @override
@@ -226,12 +224,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                         child: Padding(
                                             padding: EdgeInsets.symmetric(horizontal: 15),
                                             child: provideVIXState(SettingsAssignmentView(
-                                              buttons: readVIXState()["buttons"],
-                                              saveCallback: (buttons) {
-                                                SharedPreferences.getInstance().then(
-                                                    (prefs) => prefs.setStringList("vix::buttons", buttons.map((s) => s != null ? s : "").toList()));
+                                              prefill: AssignmentSettings(buttons: readVIXState()["buttons"]),
+                                              saveCallback: (settings) {
+                                                SharedPreferences.getInstance().then((prefs) =>
+                                                    prefs.setStringList("vix::buttons", settings.buttons!.map((s) => s != null ? s : "").toList()));
                                                 updateVIXState((m) {
-                                                  m["buttons"] = buttons;
+                                                  m["buttons"] = settings.buttons;
                                                 });
                                                 Navigator.pop(context);
                                               },

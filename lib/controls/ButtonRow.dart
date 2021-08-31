@@ -9,15 +9,14 @@ class RadioButtonRow extends StatelessWidget {
   final List<String?> buttons;
   final COLOUR activeColour;
   final CallbackType? onButtonPress;
-  final String activeLabel;
-  const RadioButtonRow({required this.buttons, required this.activeColour, required this.activeLabel, this.onButtonPress, Key? key})
-      : super(key: key);
+  final String? activeLabel;
+  const RadioButtonRow({required this.buttons, required this.activeColour, this.activeLabel, this.onButtonPress, Key? key}) : super(key: key);
 
-  List<Widget> generateRowChildren(List<String?> buttons, String activeLabel, COLOUR activeColour, CallbackType? onPressEvent) {
+  List<Widget> generateRowChildren(List<String?> buttons, String? activeLabel, COLOUR activeColour, CallbackType? onPressEvent) {
     return buttons
         .asMap()
         .entries
-        .map((scene) => (scene.value == activeLabel)
+        .map((scene) => (activeLabel != null && scene.value == activeLabel)
             ? padIt(generateButton(scene.key, label: scene.value, colour: activeColour, onPressEvent: onPressEvent))
             : padIt(generateButton(scene.key, label: scene.value, onPressEvent: onPressEvent)))
         .toList()
