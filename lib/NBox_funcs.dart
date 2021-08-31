@@ -1,4 +1,5 @@
 import 'package:obs_vix/OBSClient.dart';
+import 'package:obs_vix/VIXState.dart';
 
 const NBOX_PREFIX = "vix::nbox::";
 const NBOX_SWITCHER_PREFIX = "vix::nbox::switcher::";
@@ -61,5 +62,20 @@ abstract class NBox_funcs {
         // TODO: Tiling algorithm?
       }
     }
+  }
+
+  static initNBox(OBSClient client) {
+    client.addConnectCallback((_) async {
+      var data = await NBox_funcs.getNBoxSources(client);
+      updateVIXState((m) => m["nBoxSources"] = data);
+    });
+
+    Future Function(dynamic) cb = (resp) async {
+      if (!resp["scene-name"].startsWith("vix::nbox::switcher::")) return;
+      var data = await NBox_funcs.getNBoxSources(client, scene: resp["scene-name"]);
+      updateVIXState((m) => (m["nBoxSources"] as Map).addAll(data));
+    };
+
+    client..addEventListener("SourceOrderChanged", cb)..addEventListener("SceneItemAdded", cb)..addEventListener("SceneItemRemoved", cb);
   }
 }

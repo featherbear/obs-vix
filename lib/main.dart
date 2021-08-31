@@ -88,23 +88,14 @@ class _MyHomePageState extends State<MyHomePage> {
         m["nBoxes"] = prefs.getInt("vix::nBoxes") ?? 0;
       });
     }).then((_) {
-      this.client.addConnectCallback((client) async {
-        var data = await NBox_funcs.getNBoxSources(client);
-        updateVIXState((m) => {m["nBoxSources"] = data});
-      });
+      NBox_funcs.initNBox(this.client);
 
       {
-        Future Function(dynamic) cb = (resp) async {
-          if (!resp["scene-name"].startsWith("vix::nbox::switcher::")) return;
-          log('cb');
-          var data = await NBox_funcs.getNBoxSources(client, scene: resp["scene-name"]);
-          updateVIXState((m) {
-            (m["nBoxSources"] as Map).addAll(data);
-          });
-        };
-
-        this.client..addEventListener("SourceOrderChanged", cb)..addEventListener("SceneItemAdded", cb)..addEventListener("SceneItemRemoved", cb);
-      }
+        /* Preview and Program feed */
+        setState(() {
+          previewSourceViewer.init(this.client);
+          programSourceViewer.init(this.client);
+        });
       {
         this.client
           ..addEventListener("SwitchScenes", (data) {
