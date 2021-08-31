@@ -136,7 +136,8 @@ class _MyHomePageState extends State<MyHomePage> {
       await this.client.connectObject(this._connectionSettings);
     } on AuthException catch (e) {
       showConfigErrorDialog("Authentication Error", "Connection failed: ${e.message}");
-    } on SocketException catch (e) {
+    } catch (e) {
+      log(e.toString());
       showConfigErrorDialog("Connection Error", "Could not connect to the OBS server");
     }
   }
