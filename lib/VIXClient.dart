@@ -109,7 +109,7 @@ class VIXClient extends OBSClient {
         String nbox_switcher_sceneName = "vix::nbox::switcher::$j";
         if (sceneSources[nbox_sceneName]!.contains(nbox_switcher_sceneName)) continue;
 
-        this.request(command: "AddSceneItem", params: {"sceneName": nbox_sceneName, "sourceName": nbox_switcher_sceneName});
+        await this.request(command: "AddSceneItem", params: {"sceneName": nbox_sceneName, "sourceName": nbox_switcher_sceneName});
 
         // TODO: Tiling algorithm?
       }

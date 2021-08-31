@@ -23,10 +23,11 @@ class SettingsAssignmentView extends StatefulWidget {
 class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
   final CallbackType? saveCallback;
   final AssignmentSettings data;
+  late bool isNboxEnabled;
 
-  _SettingsAssignmentViewState({this.saveCallback, required this.data});
-
-  bool isNboxEnabled = false;
+  _SettingsAssignmentViewState({this.saveCallback, required this.data}) {
+    this.isNboxEnabled = this.data.nBoxes > 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +102,14 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
                 Row(
                   children: [
                     Text("n-boxes"),
-                    CustomNumberPicker(onValue: (int value) => data.nBoxes = value, initialValue: data.nBoxes, maxValue: 8, minValue: 0, step: 1)
+                    CustomNumberPicker(
+                        onValue: (value) {
+                          data.nBoxes = value as int;
+                        },
+                        initialValue: data.nBoxes,
+                        maxValue: 8,
+                        minValue: 0,
+                        step: 1)
                   ],
                 )
                 // ElevatedButton(onPressed: (){}, child: Text("Initialise"))
@@ -116,9 +124,8 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
         Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: ElevatedButton(
-              onPressed: () {
-                this.saveCallback?.call(AssignmentSettings(buttons: this.data.buttons));
-              },
+              onPressed: () =>
+                  this.saveCallback?.call(AssignmentSettings(buttons: this.data.buttons, nBoxes: this.isNboxEnabled ? this.data.nBoxes : 0)),
               child: Text("Save"),
             ))
       ]),
