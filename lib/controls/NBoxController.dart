@@ -30,12 +30,16 @@ class _NBoxControllerState extends State<NBoxController> {
     return NBoxSourcePreview[sourceName]!;
   }
 
+  int last_n_boxes = 0;
+
   @override
   Widget build(BuildContext context) {
     final VIX = getVIXState(context);
 
     final int? n_boxes = VIX["nBoxes"];
     if (n_boxes == null || n_boxes == 0) return Container();
+    if (n_boxes > last_n_boxes) NBoxSourcePreview.clear(); // Handle doubly changed n-box count
+    last_n_boxes = n_boxes;
 
     Map<String, List<String>>? sources = VIX["nBoxSources"];
     if (sources == null) return Container();
