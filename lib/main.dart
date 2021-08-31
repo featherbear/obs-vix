@@ -96,22 +96,18 @@ class _MyHomePageState extends State<MyHomePage> {
           previewSourceViewer.init(this.client);
           programSourceViewer.init(this.client);
         });
-      {
-        this.client
-          ..addEventListener("SwitchScenes", (data) {
-            sourceViewer.updateSource(data["scene-name"]);
-          })
-          ..addEventListener("PreviewSceneChanged", (data) {
-            sourceViewer.updateSource(data["scene-name"]);
-          });
+        {
+          this.client
+            ..addEventListener("SwitchScenes", (data) {
+              programSourceViewer.updateSource(data["scene-name"]);
+            })
+            ..addEventListener("PreviewSceneChanged", (data) {
+              previewSourceViewer.updateSource(data["scene-name"]);
+            });
+        }
       }
 
-      _tryConnect().then((_) {
-        // TODO: reeee
-        setState(() {
-          sourceViewer.init(this.client);
-        });
-      });
+      _tryConnect();
     });
   }
 
@@ -161,6 +157,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     try {
       await this.client.connectObject(this._connectionSettings);
+      var VIX = readVIXState();
+      previewSourceViewer.updateSource(VIX["activePreview"] ?? VIX["activeProgram"]);
+      programSourceViewer.updateSource(VIX["activeProgram"]);
     } on AuthException catch (e) {
       showConfigErrorDialog("Authentication Error", "Connection failed: ${e.message}");
     } catch (e) {
@@ -179,7 +178,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final focusNode = FocusNode()..requestFocus();
 
-  SourceView sourceViewer = SourceView();
+  SourceView previewSourceViewer = SourceView();
+  SourceView programSourceViewer = SourceView();
 
   @override
   Widget build(BuildContext context) {
@@ -212,8 +212,6 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         child: Scaffold(
           appBar: AppBar(
-            // Here we take the value from the MyHomePage object that was created by
-            // the App.build method, and use it to set our appbar title.
             title: Text(widget.title),
             actions: [
               PopupMenuButton(
@@ -261,29 +259,26 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
           body: Center(
-            // Center is a layout widget. It takes a single child and positions it
-            // in the middle of the parent.
             child: Padding(
                 padding: EdgeInsets.all(15),
                 child: Column(
-                  // Column is also a layout widget. It takes a list of children and
-                  // arranges them vertically. By default, it sizes itself to fit its
-                  // children horizontally, and tries to be as tall as its parent.
-                  //
-                  // Invoke "debug painting" (press "p" in the console, choose the
-                  // "Toggle Debug Paint" action from the Flutter Inspector in Android
-                  // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-                  // to see the wireframe for each widget.
-                  //
-                  // Column has various properties to control how it sizes itself and
-                  // how it positions its children. Here we use mainAxisAlignment to
-                  // center the children vertically; the main axis here is the vertical
-                  // axis because Columns are vertical (the cross axis would be
-                  // horizontal).
-                  // mainAxisAlignment: MainAxisAlignment.center,
-                  // crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    SizedBox(width: 720, height: 480, child: sourceViewer),
+                    Padding(
+                        padding: EdgeInsets.only(bottom: 15),
+                        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, crossAxisAlignment: CrossAxisAlignment.center, children: [
+                          Container(
+                              // color: Colors.blue[200],
+                              child: Column(children: [
+                            SizedBox(width: MediaQuery.of(context).size.width * 0.40, child: previewSourceViewer),
+                            Padding(padding: EdgeInsets.symmetric(vertical: 5), child: Text("PREVIEW"))
+                          ])),
+                          Container(
+                              // color: Colors.green[200],
+                              child: Column(children: [
+                            SizedBox(width: MediaQuery.of(context).size.width * 0.40, child: programSourceViewer),
+                            Padding(padding: EdgeInsets.symmetric(vertical: 5), child: Text("PROGRAM"))
+                          ]))
+                        ])),
 
                     // provideVIXState(ProgramView(this.client)),
                     // buildVIXProvider((context, data) => SourceView(sourceName: data["activeProgram"])),
