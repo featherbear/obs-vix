@@ -8,6 +8,7 @@ import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/VIXUtils.dart';
 import 'package:obs_vix/controls/Button.dart';
 import 'package:obs_vix/controls/ButtonRow.dart';
+import 'package:obs_vix/controls/SourceView.dart';
 
 class NBoxController extends StatefulWidget {
   final OBSClient client;
@@ -22,6 +23,12 @@ class _NBoxControllerState extends State<NBoxController> {
   _NBoxControllerState(this.client);
 
   Map<String, String> activeNBoxSource = {};
+  Map<String, SourceView> NBoxSourcePreview = {};
+
+  SourceView getNBoxSourcePreview(String sourceName) {
+    if (!NBoxSourcePreview.containsKey(sourceName)) NBoxSourcePreview[sourceName] = SourceView()..init(this.client, sourceName: sourceName);
+    return NBoxSourcePreview[sourceName]!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +62,7 @@ class _NBoxControllerState extends State<NBoxController> {
                   String activeItem = source[idx];
                   setState(() {
                     activeNBoxSource[name] = activeItem;
+                    getNBoxSourcePreview(name).update(); // Force redraw
                   });
                   for (String sourceName in source) {
                     this.client.request(
@@ -76,21 +84,21 @@ class _NBoxControllerState extends State<NBoxController> {
       return Container(
           child: Padding(
               padding: EdgeInsets.only(bottom: 15),
-              child: Column(
-                  // crossAxisAlignment: CrossAxisAlignment.start,
-
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 5),
-                      child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "${VIXUtils.processLabel(name)}",
-                            style: TextStyle(fontSize: 24),
-                          )),
-                    ),
-                    wrap()
-                  ])));
+              child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                Padding(padding: EdgeInsets.only(right: 15), child: SizedBox(height: 90, child: getNBoxSourcePreview(name))),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 5),
+                    child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "${VIXUtils.processLabel(name)}",
+                          style: TextStyle(fontSize: 22),
+                        )),
+                  ),
+                  wrap()
+                ])
+              ])));
     }
 
     // Source transition?

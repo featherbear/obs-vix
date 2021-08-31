@@ -18,12 +18,16 @@ class SourceView extends StatefulWidget {
   void init(OBSClient client, {String? sourceName}) {
     this.client = client;
     this.sourceName = sourceName;
+    this.update();
+  }
+
+  void update() {
     this.child.notify();
   }
 
   void updateSource(String sourceName) {
     this.sourceName = sourceName;
-    this.child.notify();
+    this.update();
   }
 
   @override
@@ -82,6 +86,7 @@ class _SourceViewState extends State<SourceView> {
   @override
   void dispose() {
     _stop();
+    super.dispose();
   }
 
   @override
