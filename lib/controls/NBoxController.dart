@@ -64,10 +64,7 @@ class _NBoxControllerState extends State<NBoxController> {
                 activeLabel: activeNBoxSource[name],
                 onButtonPress: (idx) {
                   String activeItem = source[idx];
-                  setState(() {
-                    activeNBoxSource[name] = activeItem;
-                    getNBoxSourcePreview(name).update(); // Force redraw
-                  });
+
                   for (String sourceName in source) {
                     this.client.request(
                         command: "SetSceneItemRender", params: {"scene-name": name, "source": sourceName, "render": sourceName == activeItem});
@@ -75,6 +72,11 @@ class _NBoxControllerState extends State<NBoxController> {
                     //     command: "SetSceneItemProperties",
                     //     params: {"scene-name": source.key, "item": sourceName, "visible": sourceName == activeItem});
                   }
+                  getNBoxSourcePreview(name).update(); // Force redraw
+
+                  setState(() {
+                    activeNBoxSource[name] = activeItem;
+                  });
                 },
               )
             : Align(
