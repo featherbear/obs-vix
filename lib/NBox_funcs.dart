@@ -20,7 +20,7 @@ abstract class NBox_funcs {
     }
   }
 
-  static Future initNBox(OBSClient client, {required int n}) async {
+  static Future createNBoxes(OBSClient client, {required int n}) async {
     // Get all nbox scenes with nbox sources
     Map<String, List<String>> sceneSources = {
       for (var sceneObj

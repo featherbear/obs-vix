@@ -255,7 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   m["nBoxes"] = settings.nBoxes;
                                                 });
                                                 if (settings.nBoxes > 0) {
-                                                  NBox_funcs.initNBox(this.client, n: settings.nBoxes).then((_) {
+                                                  NBox_funcs.createNBoxes(this.client, n: settings.nBoxes).then((_) {
                                                     NBox_funcs.getNBoxSources(this.client)
                                                         .then((nBoxSources) => updateVIXState((m) => m["nBoxSources"] = nBoxSources));
                                                   });
