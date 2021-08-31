@@ -235,6 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   m["buttons"] = settings.buttons;
                                                   m["nBoxes"] = settings.nBoxes;
                                                 });
+                                                if (settings.nBoxes > 0) this.client.initNBox(n: settings.nBoxes);
                                                 Navigator.pop(context);
                                               },
                                             ))))))
