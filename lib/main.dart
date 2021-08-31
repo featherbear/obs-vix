@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:obs_vix/OBSClient.dart';
+import 'package:obs_vix/VIXClient.dart';
 import 'package:obs_vix/PageViewWrapper.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/controls/PreviewProgramController.dart';
@@ -82,8 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
         m["buttons"] = (prefs.getStringList("vix::buttons") ?? []).map((s) => s.isNotEmpty ? s : null).toList();
       });
     }).then((_) {
-      this._initOBSListeners();
-      this.client.setConnectCallback(this._onOBSConnect);
       _tryConnect();
     });
   }
@@ -142,131 +141,15 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  List<String> __sceneResponseParser(dynamic resp) => resp["scenes"].map((dynamic e) => (e["name"])).toList().cast<String>();
-
-  Future<List<String>> _updateScenes() => client.request(command: "GetSceneList").then(__sceneResponseParser);
-
-  void _onOBSConnect(OBSClient client) async {
-    Map updates = {};
-
-    await Future.wait([
-      client.request(command: "EnableStudioMode"),
-      client.request(command: "GetCurrentScene").then((data) {
-        updates["activeProgram"] = data["name"];
-      }),
-      client.request(command: "GetPreviewScene").then((data) {
-        updates["activePreview"] = data["name"];
-      }),
-      _updateScenes().then((scenes) => updates["scenes"] = scenes)
-    ]);
-
-    updateVIXState((data) => data.addEntries(updates.entries));
-
-    //
-
-    int n = 3;
-
-    // Get all nbox scenes with nbox sources
-    Map<String, List<String>> sceneSources = {
-      for (var sceneObj
-          in ((await client.request(command: "GetSceneList"))["scenes"] as List).where((scene) => (scene as Map)["name"].startsWith("vix::nbox::")))
-        sceneObj["name"]: (sceneObj["sources"] as List)
-            .where((source) => (source as Map)["name"].startsWith("vix::nbox::"))
-            .map((source) => source["name"])
-            .toList()
-            .cast<String>()
-    };
-
-    // the largest n-box needs `n` switcher scenes
-    for (int i = 1; i <= n; i++) {
-      String nbox_switcher_sceneName = "vix::nbox::switcher::$i";
-      if (sceneSources.containsKey(nbox_switcher_sceneName)) continue;
-
-      // TODO: Link switcher items?
-
-      await client.request(command: "CreateScene", params: {"sceneName": nbox_switcher_sceneName});
-      sceneSources[nbox_switcher_sceneName] = [];
-    }
-
-    log(sceneSources.toString());
-    // each n-box needs to contain n switchers
-    for (int i = 1; i <= n; i++) {
-      String nbox_sceneName = "vix::nbox::$i";
-
-      if (!sceneSources.containsKey(nbox_sceneName)) {
-        await client.request(command: "CreateScene", params: {"sceneName": nbox_sceneName});
-        sceneSources[nbox_sceneName] = [];
-      }
-
-      for (int j = 1; j <= i; j++) {
-        String nbox_switcher_sceneName = "vix::nbox::switcher::$j";
-        if (sceneSources[nbox_sceneName]!.contains(nbox_switcher_sceneName)) continue;
-
-        client.request(command: "AddSceneItem", params: {"sceneName": nbox_sceneName, "sourceName": nbox_switcher_sceneName});
-
-        // TODO: Tiling algorithm?
-      }
-    }
-
-    // Currently can't hide from multiview
-  }
-
-  void _initOBSListeners() {
-    client
-      ..addEventListener("StudioModeSwitched", (data) {
-        if (!data["new-state"]) this.client.request(command: "EnableStudioMode");
-      })
-      ..addEventListener("SwitchScenes", (data) {
-        updateVIXState((m) {
-          m["activeProgram"] = data["scene-name"];
-        });
-      })
-      ..addEventListener("PreviewSceneChanged", (data) {
-        updateVIXState((m) {
-          m["activePreview"] = data["scene-name"];
-        });
-      })
-      ..addEventListener("TransitionBegin", (resp) {
-        updateVIXState((m) {
-          // m["activePreview"] = data["from-scene"]; // Don't need to apply the preview, should be handled when PreviewSceneChange is received
-
-          m["activeProgram"] = resp["to-scene"];
-        });
-      })
-      ..addEventListener("ScenesChanged", (resp) {
-        // `scenes` doesn't appear inside the object?
-        // obs-websocket 4.8.0
-        // obs-studio-version 27.0.1
-        // _updateScenes().then((scenes) => updateVIXState((m) => m["scenes"] = scenes));
-
-        updateVIXState((m) => m["scenes"] = __sceneResponseParser(resp));
-      });
-    // ..addEventListener("SceneItemVisibilityChanged", (data) async {
-    //   // SceneItemAdded
-    //   // SourceOrderChanged
-    // });
-  }
-
   void _incrementCounter() {
     setState(() {
       _counter++;
     });
   }
 
-  final OBSClient client = OBSClient()..addRawListener((data) => log(data));
+  final VIXClient client = VIXClient(); // ..addRawListener((data) => log(data));
 
   final focusNode = FocusNode()..requestFocus();
-
-  void handleChangePreview(int idx) {
-    List<String?>? buttons = readVIXState()["buttons"];
-    if (buttons == null) return; // Check if un-init
-    if (buttons.length <= idx) return; // Check if valid
-
-    String? targetScene = buttons[idx];
-    if (targetScene == null) return; // Check if valid scene
-
-    client.request(command: "SetPreviewScene", params: {"scene-name": targetScene});
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -282,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (!(evt is RawKeyDownEvent)) return;
 
           int keyCode = evt.logicalKey.keyId;
-          if (0x31 <= keyCode && keyCode <= 0x39) return handleChangePreview(keyCode - 0x31);
+          if (0x31 <= keyCode && keyCode <= 0x39) return this.client.handleChangePreview(keyCode - 0x31);
 
           if (evt.logicalKey == LogicalKeyboardKey.space) {
             client.request(command: "TransitionToProgram", params: {
@@ -358,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 provideVIXState(PreviewProgramController(
-                  onPreviewEvent: handleChangePreview,
+                  onPreviewEvent: this.client.handleChangePreview,
                   onProgramEvent: (idx) {
                     String? targetScene = readVIXState()["buttons"][idx];
                     if (targetScene == null) return;
