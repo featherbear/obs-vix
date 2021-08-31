@@ -83,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       updateVIXState((m) {
         m["buttons"] = (prefs.getStringList("vix::buttons") ?? []).map((s) => s.isNotEmpty ? s : null).toList();
+        m["nBoxes"] = prefs.getInt("vix::nBoxes") ?? 0;
       });
     }).then((_) {
       _tryConnect().then((_) {
@@ -224,12 +225,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                         child: Padding(
                                             padding: EdgeInsets.symmetric(horizontal: 15),
                                             child: provideVIXState(SettingsAssignmentView(
-                                              prefill: AssignmentSettings(buttons: readVIXState()["buttons"]),
+                                              prefill: AssignmentSettings(buttons: readVIXState()["buttons"], nBoxes: readVIXState()["nBoxes"]),
                                               saveCallback: (settings) {
-                                                SharedPreferences.getInstance().then((prefs) =>
-                                                    prefs.setStringList("vix::buttons", settings.buttons!.map((s) => s != null ? s : "").toList()));
+                                                SharedPreferences.getInstance().then((prefs) {
+                                                  prefs.setInt("vix::nBoxes", settings.nBoxes);
+                                                  prefs.setStringList("vix::buttons", settings.buttons.map((s) => s != null ? s : "").toList());
+                                                });
                                                 updateVIXState((m) {
                                                   m["buttons"] = settings.buttons;
+                                                  m["nBoxes"] = settings.nBoxes;
                                                 });
                                                 Navigator.pop(context);
                                               },

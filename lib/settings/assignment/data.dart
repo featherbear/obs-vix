@@ -1,6 +1,10 @@
 typedef SceneOrder = List<String?>;
 
+const SceneOrder _emptyList = [];
+
 class AssignmentSettings {
-  SceneOrder? buttons;
-  AssignmentSettings({required this.buttons});
+  SceneOrder buttons;
+  int nBoxes;
+
+  AssignmentSettings({this.buttons = _emptyList, this.nBoxes = 0});
 }

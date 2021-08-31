@@ -1,39 +1,39 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/VIXUtils.dart';
 import 'package:obs_vix/settings/assignment/data.dart';
+import 'package:flutter_number_picker/flutter_number_picker.dart';
 
 typedef CallbackType = void Function(AssignmentSettings);
 
 class SettingsAssignmentView extends StatefulWidget {
   final CallbackType? saveCallback;
-  final SceneOrder _buttons;
+  final AssignmentSettings? prefill;
+
+  SettingsAssignmentView({Key? key, this.saveCallback, this.prefill}) : super(key: key);
 
   @override
-  SettingsAssignmentView({Key? key, this.saveCallback, AssignmentSettings? prefill})
-      : this._buttons = SceneOrder.from(prefill?.buttons ?? []),
-        super(key: key);
-
-  // : super(key: key);
-
-  @override
-  _SettingsAssignmentViewState createState() => _SettingsAssignmentViewState(saveCallback: this.saveCallback, buttons: this._buttons);
+  _SettingsAssignmentViewState createState() => _SettingsAssignmentViewState(
+      saveCallback: this.saveCallback, data: AssignmentSettings(buttons: SceneOrder.from(prefill?.buttons ?? []), nBoxes: prefill?.nBoxes ?? 0));
 }
 
 class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
   final CallbackType? saveCallback;
-  SceneOrder? buttons;
+  final AssignmentSettings data;
 
-  _SettingsAssignmentViewState({this.saveCallback, this.buttons});
+  _SettingsAssignmentViewState({this.saveCallback, required this.data});
+
+  bool isNboxEnabled = false;
 
   @override
   Widget build(BuildContext context) {
     final VIX = getVIXState(context);
 
     // Get scenes, and merge with previously selected scenes (that may no longer exist)
-    List sceneList = VIX["scenes"] ?? [];
-    if (this.buttons != null) sceneList = [...sceneList, ...this.buttons!.where((s) => s != null)].toSet().toList();
+    List sceneList = [...VIX["scenes"] ?? [], ...data.buttons.where((s) => s != null)].toSet().toList();
     sceneList.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
     List<Widget> _headSub(String head, String sub) => [Text(head, style: TextStyle(fontSize: 24)), Text(sub, style: TextStyle(color: Colors.grey))];
@@ -42,43 +42,41 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
           ..._headSub("Button Assignment", "Manage scene button assignments"),
           Column(
               children: this
-                      .buttons
-                      ?.asMap()
-                      .entries
-                      .map((entry) => Row(children: [
-                            Text('Button ${entry.key + 1} = '),
-                            DropdownButton(
-                              value: entry.value,
-                              hint: Text("Select scene"),
-                              items: ['', ...sceneList].cast<String>().map((e) {
-                                return DropdownMenuItem(value: e, child: Text(VIXUtils.processLabel(e)));
-                              }).toList(),
-                              onChanged: (String? s) {
-                                setState(() {
-                                  this.buttons![entry.key] = s!.isEmpty ? null : s;
-                                });
-                              },
-                            ),
-                            IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    this.buttons?.removeAt(entry.key);
-                                  });
-                                },
-                                splashRadius: 20,
-                                icon: Icon(Icons.delete))
-                          ]))
-                      .toList()
-                      .cast<Widget>() ??
-                  []),
+                  .data
+                  .buttons
+                  .asMap()
+                  .entries
+                  .map((entry) => Row(children: [
+                        Text('Button ${entry.key + 1} = '),
+                        DropdownButton(
+                          value: entry.value,
+                          hint: Text("Select scene"),
+                          items: ['', ...sceneList].cast<String>().map((e) {
+                            return DropdownMenuItem(value: e, child: Text(VIXUtils.processLabel(e)));
+                          }).toList(),
+                          onChanged: (String? s) {
+                            setState(() {
+                              this.data.buttons[entry.key] = s!.isEmpty ? null : s;
+                            });
+                          },
+                        ),
+                        IconButton(
+                            onPressed: () {
+                              setState(() {
+                                this.data.buttons.removeAt(entry.key);
+                              });
+                            },
+                            splashRadius: 20,
+                            icon: Icon(Icons.delete))
+                      ]))
+                  .toList()
+                  .cast<Widget>()),
           Padding(
               padding: EdgeInsets.symmetric(vertical: 10),
               child: ElevatedButton(
                 onPressed: () {
-                  if (this.buttons == null) this.buttons = [];
-
                   setState(() {
-                    this.buttons!.add(null);
+                    this.data.buttons.add(null);
                   });
                 },
                 child: Text("Add button"),
@@ -86,8 +84,29 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
         ];
 
     List<Widget> generateNBoxAssignments() {
-      if (false) return [];
-      return [..._headSub("n-box", "Configure n-box options")];
+      return [
+        ..._headSub("n-box", "Configure n-box options"),
+        Row(children: [
+          Text("Enable n-box"),
+          Switch(
+              value: isNboxEnabled,
+              onChanged: (bool? state) {
+                if (state == null) return;
+                setState(() => isNboxEnabled = state);
+              }),
+        ]),
+        ...(!isNboxEnabled
+            ? []
+            : [
+                Row(
+                  children: [
+                    Text("n-boxes"),
+                    CustomNumberPicker(onValue: (int value) => data.nBoxes = value, initialValue: data.nBoxes, maxValue: 8, minValue: 0, step: 1)
+                  ],
+                )
+                // ElevatedButton(onPressed: (){}, child: Text("Initialise"))
+              ])
+      ];
     }
 
     return Container(
@@ -98,7 +117,7 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
             padding: EdgeInsets.symmetric(vertical: 10),
             child: ElevatedButton(
               onPressed: () {
-                this.saveCallback?.call(AssignmentSettings(buttons: this.buttons ?? []));
+                this.saveCallback?.call(AssignmentSettings(buttons: this.data.buttons));
               },
               child: Text("Save"),
             ))
