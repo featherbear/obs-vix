@@ -47,7 +47,13 @@ class _SourceViewState extends State<SourceView> {
 
   _requestUpdate() {
     _stop();
-    this.parent.client!.request(command: "TakeSourceScreenshot", params: {"sourceName": parent.sourceName, "embedPictureFormat": "jpg"}).then((r) {
+    this.parent.client!.request(command: "TakeSourceScreenshot", params: {
+      "sourceName": parent.sourceName,
+      "embedPictureFormat": "jpg",
+      "width": 480,
+      "height": 270,
+      "compressionQuality": -1,
+    }).then((r) {
       if (!this.mounted) return _stop();
 
       setState(() {
