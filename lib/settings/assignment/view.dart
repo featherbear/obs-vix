@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:obs_vix/VIXState.dart';
+import 'package:obs_vix/VIXUtils.dart';
 
 typedef SceneOrder = List<String?>;
 typedef CallbackType = void Function(SceneOrder);
@@ -50,7 +51,7 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
                             value: entry.value,
                             hint: Text("Select scene"),
                             items: ['', ...sceneList].cast<String>().map((e) {
-                              return DropdownMenuItem(value: e, child: Text(e.isNotEmpty ? e : "(none)"));
+                              return DropdownMenuItem(value: e, child: Text(VIXUtils.processLabel(e)));
                             }).toList(),
                             onChanged: (String? s) {
                               setState(() {

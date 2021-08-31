@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:obs_vix/VIXUtils.dart';
 
 enum COLOUR { RED, GREEN, YELLOW, BLANK }
 
@@ -28,7 +29,7 @@ class Button extends StatelessWidget {
     return Container(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(primary: resolveColourEnum(this.colour)),
-        child: Text(label ?? ""),
+        child: Text(VIXUtils.processLabel(label)),
         onPressed: onPress,
       ),
     );
