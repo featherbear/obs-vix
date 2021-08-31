@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:obs_vix/NBox_funcs.dart';
 import 'package:obs_vix/OBSClient.dart';
 import 'package:obs_vix/VIXState.dart';
 
@@ -39,7 +40,7 @@ class VIXClient extends OBSClient {
     //   // SourceOrderChanged
     // });
 
-    this.setConnectCallback((client) async {
+    this.addConnectCallback((client) async {
       Map updates = {};
 
       await Future.wait([
@@ -70,49 +71,5 @@ class VIXClient extends OBSClient {
     if (targetScene == null) return; // Check if valid scene
 
     this.request(command: "SetPreviewScene", params: {"scene-name": targetScene});
-  }
-
-  void initNBox({int n = 3}) async {
-    // Get all nbox scenes with nbox sources
-    Map<String, List<String>> sceneSources = {
-      for (var sceneObj
-          in ((await this.request(command: "GetSceneList"))["scenes"] as List).where((scene) => (scene as Map)["name"].startsWith("vix::nbox::")))
-        sceneObj["name"]: (sceneObj["sources"] as List)
-            .where((source) => (source as Map)["name"].startsWith("vix::nbox::"))
-            .map((source) => source["name"])
-            .toList()
-            .cast<String>()
-    };
-
-    // the largest n-box needs `n` switcher scenes
-    for (int i = 1; i <= n; i++) {
-      String nbox_switcher_sceneName = "vix::nbox::switcher::$i";
-      if (sceneSources.containsKey(nbox_switcher_sceneName)) continue;
-
-      // TODO: Link switcher items?
-
-      await this.request(command: "CreateScene", params: {"sceneName": nbox_switcher_sceneName});
-      sceneSources[nbox_switcher_sceneName] = [];
-    }
-
-    log(sceneSources.toString());
-    // each n-box needs to contain n switchers
-    for (int i = 1; i <= n; i++) {
-      String nbox_sceneName = "vix::nbox::$i";
-
-      if (!sceneSources.containsKey(nbox_sceneName)) {
-        await this.request(command: "CreateScene", params: {"sceneName": nbox_sceneName});
-        sceneSources[nbox_sceneName] = [];
-      }
-
-      for (int j = 1; j <= i; j++) {
-        String nbox_switcher_sceneName = "vix::nbox::switcher::$j";
-        if (sceneSources[nbox_sceneName]!.contains(nbox_switcher_sceneName)) continue;
-
-        await this.request(command: "AddSceneItem", params: {"sceneName": nbox_sceneName, "sourceName": nbox_switcher_sceneName});
-
-        // TODO: Tiling algorithm?
-      }
-    }
   }
 }

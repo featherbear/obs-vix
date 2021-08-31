@@ -41,7 +41,7 @@ class OBSClient {
   List<RawCallbackFunction> _rawCallbacks = [];
   List<RawCallbackFunction> _rawCallbacksSnoop = [];
 
-  ConnectCallbackFunction? _connectCallback;
+  List<ConnectCallbackFunction> _connectCallbacks = [];
   Map<String, List<CallbackFunction>> _callbacks = new Map();
 
   void close() {
@@ -55,8 +55,8 @@ class OBSClient {
     _prefix = '$mIDprefix${uuid.v4().substring(0, 8)}::';
   }
 
-  void setConnectCallback(ConnectCallbackFunction cb) {
-    this._connectCallback = cb;
+  void addConnectCallback(ConnectCallbackFunction cb) {
+    this._connectCallbacks.add(cb);
   }
 
   Future<OBSClient> _connect(Uri uri, {String? password}) async {
@@ -115,7 +115,11 @@ class OBSClient {
       return this;
     }).then((client) {
       log("OBS client connected to ${this.uri.toString()}");
-      Future.sync(() => this._connectCallback?.call(client));
+
+      Future.wait(this._connectCallbacks.map((fn) => Future.sync(() => fn(this))));
+
+      // Future.sync(() => this._connectCallback?.call(client));
+
       return this;
     });
   }

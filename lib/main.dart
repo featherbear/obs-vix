@@ -3,10 +3,12 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:obs_vix/NBox_funcs.dart';
 import 'package:obs_vix/OBSClient.dart';
 import 'package:obs_vix/VIXClient.dart';
 import 'package:obs_vix/PageViewWrapper.dart';
 import 'package:obs_vix/VIXState.dart';
+import 'package:obs_vix/controls/NBoxController.dart';
 import 'package:obs_vix/controls/PreviewProgramController.dart';
 import 'package:obs_vix/controls/SourceView.dart';
 import 'package:obs_vix/settings/assignment/data.dart';
@@ -86,21 +88,43 @@ class _MyHomePageState extends State<MyHomePage> {
         m["nBoxes"] = prefs.getInt("vix::nBoxes") ?? 0;
       });
     }).then((_) {
-      _tryConnect().then((_) {
-        {
-          // TODO: reeee
-          setState(() {
-            sourceViewer.init(this.client);
-          });
+      this.client.addConnectCallback((client) async {
+        var data = await NBox_funcs.updateNBoxSources(client);
+        updateVIXState((m) => {m["nBoxSources"] = data});
+      });
 
-          this.client
-            ..addEventListener("SwitchScenes", (data) {
-              sourceViewer.updateSource(data["scene-name"]);
-            })
-            ..addEventListener("PreviewSceneChanged", (data) {
-              sourceViewer.updateSource(data["scene-name"]);
+      {
+        this.client
+          ..addEventListener("SceneItemAdded", (resp) async {
+            if (!resp["scene-name"].startsWith("vix::nbox::switcher::")) return;
+            var data = await NBox_funcs.updateNBoxSources(client, scene: resp["scene-name"]);
+            updateVIXState((m) {
+              (m["nBoxSources"] as Map).addAll(data);
             });
-        }
+          })
+          ..addEventListener("SceneItemRemoved", (resp) async {
+            if (!resp["scene-name"].startsWith("vix::nbox::switcher::")) return;
+            var data = await NBox_funcs.updateNBoxSources(client, scene: resp["scene-name"]);
+            updateVIXState((m) {
+              (m["nBoxSources"] as Map).addAll(data);
+            });
+          });
+      }
+      {
+        this.client
+          ..addEventListener("SwitchScenes", (data) {
+            sourceViewer.updateSource(data["scene-name"]);
+          })
+          ..addEventListener("PreviewSceneChanged", (data) {
+            sourceViewer.updateSource(data["scene-name"]);
+          });
+      }
+
+      _tryConnect().then((_) {
+        // TODO: reeee
+        setState(() {
+          sourceViewer.init(this.client);
+        });
       });
     });
   }
@@ -165,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  final VIXClient client = VIXClient(); // ..addRawListener((data) => log(data));
+  final VIXClient client = VIXClient(); //..addRawListener((data) => log(data));
 
   final focusNode = FocusNode()..requestFocus();
 
@@ -235,7 +259,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   m["buttons"] = settings.buttons;
                                                   m["nBoxes"] = settings.nBoxes;
                                                 });
-                                                if (settings.nBoxes > 0) this.client.initNBox(n: settings.nBoxes);
+                                                if (settings.nBoxes > 0) NBox_funcs.initNBox(this.client, n: settings.nBoxes);
                                                 Navigator.pop(context);
                                               },
                                             ))))))
@@ -247,44 +271,49 @@ class _MyHomePageState extends State<MyHomePage> {
           body: Center(
             // Center is a layout widget. It takes a single child and positions it
             // in the middle of the parent.
-            child: Column(
-              // Column is also a layout widget. It takes a list of children and
-              // arranges them vertically. By default, it sizes itself to fit its
-              // children horizontally, and tries to be as tall as its parent.
-              //
-              // Invoke "debug painting" (press "p" in the console, choose the
-              // "Toggle Debug Paint" action from the Flutter Inspector in Android
-              // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-              // to see the wireframe for each widget.
-              //
-              // Column has various properties to control how it sizes itself and
-              // how it positions its children. Here we use mainAxisAlignment to
-              // center the children vertically; the main axis here is the vertical
-              // axis because Columns are vertical (the cross axis would be
-              // horizontal).
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                sourceViewer,
+            child: Padding(
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  // Column is also a layout widget. It takes a list of children and
+                  // arranges them vertically. By default, it sizes itself to fit its
+                  // children horizontally, and tries to be as tall as its parent.
+                  //
+                  // Invoke "debug painting" (press "p" in the console, choose the
+                  // "Toggle Debug Paint" action from the Flutter Inspector in Android
+                  // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+                  // to see the wireframe for each widget.
+                  //
+                  // Column has various properties to control how it sizes itself and
+                  // how it positions its children. Here we use mainAxisAlignment to
+                  // center the children vertically; the main axis here is the vertical
+                  // axis because Columns are vertical (the cross axis would be
+                  // horizontal).
+                  // mainAxisAlignment: MainAxisAlignment.center,
+                  // crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    SizedBox(width: 720, height: 480, child: sourceViewer),
 
-                // provideVIXState(ProgramView(this.client)),
-                // buildVIXProvider((context, data) => SourceView(sourceName: data["activeProgram"])),
-                provideVIXState(PreviewProgramController(
-                  onPreviewEvent: this.client.handleChangePreview,
-                  onProgramEvent: (idx) {
-                    String? targetScene = readVIXState()["buttons"][idx];
-                    if (targetScene == null) return;
-                    client.request(command: "SetCurrentScene", params: {"scene-name": targetScene});
-                  },
+                    // provideVIXState(ProgramView(this.client)),
+                    // buildVIXProvider((context, data) => SourceView(sourceName: data["activeProgram"])),
+
+                    provideVIXState(PreviewProgramController(
+                      onPreviewEvent: this.client.handleChangePreview,
+                      onProgramEvent: (idx) {
+                        String? targetScene = readVIXState()["buttons"][idx];
+                        if (targetScene == null) return;
+                        client.request(command: "SetCurrentScene", params: {"scene-name": targetScene});
+                      },
+                    )),
+                    provideVIXState(NBoxController(this.client)),
+                    Text(
+                      'You have pushed the button this many times:',
+                    ),
+                    Text(
+                      '$_counter',
+                      style: Theme.of(context).textTheme.headline4,
+                    ),
+                  ],
                 )),
-                Text(
-                  'You have pushed the button this many times:',
-                ),
-                Text(
-                  '$_counter',
-                  style: Theme.of(context).textTheme.headline4,
-                ),
-              ],
-            ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: _incrementCounter,
