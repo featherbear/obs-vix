@@ -89,26 +89,21 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }).then((_) {
       this.client.addConnectCallback((client) async {
-        var data = await NBox_funcs.updateNBoxSources(client);
+        var data = await NBox_funcs.getNBoxSources(client);
         updateVIXState((m) => {m["nBoxSources"] = data});
       });
 
       {
-        this.client
-          ..addEventListener("SceneItemAdded", (resp) async {
-            if (!resp["scene-name"].startsWith("vix::nbox::switcher::")) return;
-            var data = await NBox_funcs.updateNBoxSources(client, scene: resp["scene-name"]);
-            updateVIXState((m) {
-              (m["nBoxSources"] as Map).addAll(data);
-            });
-          })
-          ..addEventListener("SceneItemRemoved", (resp) async {
-            if (!resp["scene-name"].startsWith("vix::nbox::switcher::")) return;
-            var data = await NBox_funcs.updateNBoxSources(client, scene: resp["scene-name"]);
-            updateVIXState((m) {
-              (m["nBoxSources"] as Map).addAll(data);
-            });
+        Future Function(dynamic) cb = (resp) async {
+          if (!resp["scene-name"].startsWith("vix::nbox::switcher::")) return;
+          log('cb');
+          var data = await NBox_funcs.getNBoxSources(client, scene: resp["scene-name"]);
+          updateVIXState((m) {
+            (m["nBoxSources"] as Map).addAll(data);
           });
+        };
+
+        this.client..addEventListener("SourceOrderChanged", cb)..addEventListener("SceneItemAdded", cb)..addEventListener("SceneItemRemoved", cb);
       }
       {
         this.client
@@ -259,7 +254,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   m["buttons"] = settings.buttons;
                                                   m["nBoxes"] = settings.nBoxes;
                                                 });
-                                                if (settings.nBoxes > 0) NBox_funcs.initNBox(this.client, n: settings.nBoxes);
+                                                if (settings.nBoxes > 0) {
+                                                  NBox_funcs.initNBox(this.client, n: settings.nBoxes).then((_) {
+                                                    NBox_funcs.getNBoxSources(this.client)
+                                                        .then((nBoxSources) => updateVIXState((m) => m["nBoxSources"] = nBoxSources));
+                                                  });
+                                                }
+                                                ;
                                                 Navigator.pop(context);
                                               },
                                             ))))))

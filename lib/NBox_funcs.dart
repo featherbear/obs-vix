@@ -4,7 +4,7 @@ const NBOX_PREFIX = "vix::nbox::";
 const NBOX_SWITCHER_PREFIX = "vix::nbox::switcher::";
 
 abstract class NBox_funcs {
-  static Future<Map<String, List<String>>> updateNBoxSources(OBSClient client, {String? scene}) async {
+  static Future<Map<String, List<String>>> getNBoxSources(OBSClient client, {String? scene}) async {
     if (scene == null) {
       return client.request(command: "GetSceneList").then((dynamic resp) => {
             for (var obj in resp["scenes"].where((obj) => (obj["name"] as String).startsWith("vix::nbox::switcher::")))
@@ -20,7 +20,7 @@ abstract class NBox_funcs {
     }
   }
 
-  static void initNBox(OBSClient client, {required int n}) async {
+  static Future initNBox(OBSClient client, {required int n}) async {
     // Get all nbox scenes with nbox sources
     Map<String, List<String>> sceneSources = {
       for (var sceneObj

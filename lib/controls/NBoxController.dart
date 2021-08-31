@@ -27,7 +27,7 @@ class _NBoxControllerState extends State<NBoxController> {
   Widget build(BuildContext context) {
     final VIX = getVIXState(context);
 
-    final int n_boxes = VIX["nBoxes"];
+    final int? n_boxes = VIX["nBoxes"];
     if (n_boxes == null || n_boxes == 0) return Container();
 
     Map<String, List<String>>? sources = VIX["nBoxSources"];
