@@ -36,7 +36,7 @@ jobs:
         channel: master
     - run: flutter doctor -v
     - run: flutter pub get
-    - run: flutter build apk
+    - run: flutter build -v apk
     - uses: actions/upload-artifact@v2
       with:
         # name: obs-vix_${{ github.sha }}.apk
