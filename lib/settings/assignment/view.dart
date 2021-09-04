@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:obs_vix/NBox_funcs.dart';
 import 'package:obs_vix/VIXState.dart';
 import 'package:obs_vix/VIXUtils.dart';
 import 'package:obs_vix/settings/assignment/data.dart';
@@ -35,7 +36,12 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
     final VIX = getVIXState(context);
 
     // Get scenes, and merge with previously selected scenes (that may no longer exist)
-    List sceneList = StringSort([...VIX["scenes"] ?? [], ...data.buttons.where((s) => s != null)].toSet().toList().cast<String>());
+    List sceneList = StringSort([
+      ...[...(VIX["scenes"] ?? [])]..removeWhere((element) =>
+          (element as String).startsWith(NBOX_PREFIX) &&
+          ((int.tryParse(element.substring(NBOX_PREFIX.length)) ?? -1) > (this.isNboxEnabled ? this.data.nBoxes : 0))),
+      ...data.buttons.where((s) => s != null)
+    ].toSet().toList().cast<String>());
 
     List<Widget> _headSub(String head, String sub) => [Text(head, style: TextStyle(fontSize: 24)), Text(sub, style: TextStyle(color: Colors.grey))];
 
@@ -104,7 +110,9 @@ class _SettingsAssignmentViewState extends State<SettingsAssignmentView> {
                     Text("n-boxes"),
                     CustomNumberPicker(
                         onValue: (value) {
-                          data.nBoxes = value as int;
+                          setState(() {
+                            data.nBoxes = value as int;
+                          });
                         },
                         initialValue: data.nBoxes,
                         maxValue: 8,
