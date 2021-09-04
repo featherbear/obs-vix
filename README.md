@@ -20,7 +20,7 @@ But like rn there's a menu button on the top right to change the OBS address, an
 ## Releases
 
 * [Web - featherbear.cc/obs-vix](http://featherbear.cc/obs-vix/)
-* [Windows] - TBA (Use the [web](http://featherbear.cc/obs-vix/) release for now)
+* [Windows (EXE)](https://nightly.link/featherbear/obs-vix/workflows/flutter/master/obs-vix_CI_BUILD.exe.zip)
 * [Android (APK)](https://nightly.link/featherbear/obs-vix/workflows/flutter/master/obs-vix_CI_BUILD.apk.zip)
 
 <!-- This https://nightly.link site is pretty cool! -->
