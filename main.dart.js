@@ -68352,7 +68352,7 @@ b.a_(t.KL).toString
 s=$.j7()
 r=s.h(0,"buttons")
 if(r==null)r=H.a([],t._m)
-return M.cT(q,T.jm(H.a([new T.bC(new V.aD(0,0,0,15),new U.qA(r,C.kA,this.e,s.h(0,"activePreview"),q),q),new T.bC(new V.aD(0,0,0,15),new U.qA(r,C.kz,this.d,s.h(0,"activeProgram"),q),q)],t.p),C.ap,C.aa,C.ar),q,q,q,q,q,q,q)}}
+return M.cT(q,T.jm(H.a([new T.bC(new V.aD(0,0,0,15),new U.qA(r,C.kz,this.d,s.h(0,"activeProgram"),q),q),new T.bC(new V.aD(0,0,0,15),new U.qA(r,C.kA,this.e,s.h(0,"activePreview"),q),q)],t.p),C.ap,C.aa,C.ar),q,q,q,q,q,q,q)}}
 M.ri.prototype={
 gaO(){var s=this.c
 return s==null?H.e(H.t("child")):s},
