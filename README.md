@@ -2,6 +2,8 @@
 
 > Vision Mixer panel for OBS via [obs-websocket](https://github.com/Palakis/obs-websocket)
 
+Blog: [featherbear.cc](https://featherbear.cc/blog/post/obs-vix/)
+
 ---
 
 # Usage
@@ -33,7 +35,8 @@ But like rn there's a menu button on the top right to change the OBS address, an
 
 ## Development
 
-Haha made in Flutter I have no idea how to write apps in Flutter.
+Haha made in Flutter I have no idea how to write apps in Flutter.  
+But do read my [dev blog](https://featherbear.cc/blog/post/obs-vix/)!
 
 ## License
 
