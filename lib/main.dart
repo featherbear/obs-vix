@@ -283,22 +283,39 @@ class _MyHomePageState extends State<MyHomePage> {
                     // provideVIXState(ProgramView(this.client)),
                     // buildVIXProvider((context, data) => SourceView(sourceName: data["activeProgram"])),
 
-                    provideVIXState(PreviewProgramController(
-                      onPreviewEvent: this.client.handleChangePreview,
-                      onProgramEvent: (idx) {
-                        String? targetScene = readVIXState()["buttons"][idx];
-                        if (targetScene == null) return;
-                        client.request(command: "SetCurrentScene", params: {"scene-name": targetScene});
-                      },
-                    )),
-                    provideVIXState(NBoxController(this.client)),
-                    Text(
-                      'You have pushed the button this many times:',
-                    ),
-                    Text(
-                      '$_counter',
-                      style: Theme.of(context).textTheme.headline4,
-                    ),
+                    Expanded(
+                        child: Flex(
+                      direction: MediaQuery.of(context).size.width >= 840 ? Axis.horizontal : Axis.vertical,
+                      children: <Widget>[
+                        Container(
+                            child: provideVIXState(PreviewProgramController(
+                              onPreviewEvent: this.client.handleChangePreview,
+                              onProgramEvent: (idx) {
+                                String? targetScene = readVIXState()["buttons"][idx];
+                                if (targetScene == null) return;
+                                client.request(command: "SetCurrentScene", params: {"scene-name": targetScene});
+                              },
+                            )),
+                            color: Colors.red),
+                        Expanded(
+                          child: ListView(
+                            children: [
+                              Container(
+                                child: provideVIXState(NBoxController(this.client)),
+                                color: Colors.green,
+                              ),
+                              Text(
+                                'You have pushed the button this many times:',
+                              ),
+                              Text(
+                                '$_counter',
+                                style: Theme.of(context).textTheme.headline4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ))
                   ],
                 )),
           ),
