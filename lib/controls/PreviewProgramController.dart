@@ -27,12 +27,12 @@ class _PreviewProgramControllerState extends State<PreviewProgramController> {
         children: [
           new Padding(
               padding: EdgeInsets.only(bottom: PAD_SIZE),
-              child: RadioButtonRow(
-                  buttons: buttons, activeColour: COLOUR.GREEN, activeLabel: VIX["activePreview"], onButtonPress: this.onPreviewEvent)),
+              child:
+                  RadioButtonRow(buttons: buttons, activeColour: COLOUR.RED, activeLabel: VIX["activeProgram"], onButtonPress: this.onProgramEvent)),
           new Padding(
               padding: EdgeInsets.only(bottom: PAD_SIZE),
               child:
-                  RadioButtonRow(buttons: buttons, activeColour: COLOUR.RED, activeLabel: VIX["activeProgram"], onButtonPress: this.onProgramEvent))
+                  RadioButtonRow(buttons: buttons, activeColour: COLOUR.GREEN, activeLabel: VIX["activePreview"], onButtonPress: this.onPreviewEvent))
         ],
       ),
     );
