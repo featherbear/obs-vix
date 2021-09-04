@@ -36,6 +36,9 @@ class RadioButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Row(children: generateRowChildren(this.buttons, activeLabel, this.activeColour, this.onButtonPress));
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: generateRowChildren(this.buttons, activeLabel, this.activeColour, this.onButtonPress));
   }
 }
