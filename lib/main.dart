@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math' as Math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -236,13 +237,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             Container(
                                 // color: Colors.blue[200],
                                 child: Column(children: [
-                              SizedBox(width: MediaQuery.of(context).size.width * 0.40, child: previewSourceViewer),
+                              SizedBox(width: Math.min(MediaQuery.of(context).size.width * 0.40, 480), child: previewSourceViewer),
                               Padding(padding: EdgeInsets.symmetric(vertical: 5), child: Text("PREVIEW"))
                             ])),
                             Container(
                                 // color: Colors.green[200],
                                 child: Column(children: [
-                              SizedBox(width: MediaQuery.of(context).size.width * 0.40, child: programSourceViewer),
+                              SizedBox(width: Math.min(MediaQuery.of(context).size.width * 0.40, 480), child: programSourceViewer),
                               Padding(padding: EdgeInsets.symmetric(vertical: 5), child: Text("PROGRAM"))
                             ]))
                           ])),
