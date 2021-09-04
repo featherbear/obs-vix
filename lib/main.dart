@@ -255,7 +255,16 @@ class _MyHomePageState extends State<MyHomePage> {
                         onProgramEvent: (idx) {
                           String? targetScene = readVIXState()["buttons"][idx];
                           if (targetScene == null) return;
-                          client.request(command: "SetCurrentScene", params: {"scene-name": targetScene});
+
+                          String? oldPreviewScene = readVIXState()["activePreview"];
+                          client.request(command: "SetCurrentScene", params: {"scene-name": targetScene}).then((_) {
+                            // When the program is changed, the preview updates to the old program - not what we want!
+                            // The "Swap Preview/Output Scenes After Transitioning" would fix this issue, but we want to keep this on like a normal vision mixer
+                            if (oldPreviewScene != null)
+                              client.addEventListener("PreviewSceneChanged", (data) {
+                                client.request(command: "SetPreviewScene", params: {"scene-name": oldPreviewScene}).then((_) {});
+                              }, once: true);
+                          });
                         },
                       )),
 

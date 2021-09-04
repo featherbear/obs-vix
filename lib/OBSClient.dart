@@ -43,6 +43,7 @@ class OBSClient {
 
   List<ConnectCallbackFunction> _connectCallbacks = [];
   Map<String, List<CallbackFunction>> _callbacks = new Map();
+  Map<String, List<CallbackFunction>> _onceCallbacks = new Map();
 
   void close() {
     _channel?.sink.close();
@@ -140,7 +141,14 @@ class OBSClient {
     return this.connect(host: settings.host, port: settings.port, password: settings.password);
   }
 
-  void addEventListener(String eventName, CallbackFunction callback) {
+  void addEventListener(String eventName, CallbackFunction callback, {bool once = false}) {
+    if (once) {
+      if (!_onceCallbacks.containsKey(eventName)) _onceCallbacks[eventName] = [];
+      if (_onceCallbacks[eventName]!.contains(callback)) return;
+      _onceCallbacks[eventName]!.add(callback);
+      return;
+    }
+
     if (!_callbacks.containsKey(eventName)) _callbacks[eventName] = [];
     if (_callbacks[eventName]!.contains(callback)) return;
     _callbacks[eventName]!.add(callback);
@@ -168,8 +176,11 @@ class OBSClient {
   }
 
   void _alertListener(String eventName, dynamic data) {
-    if (!_callbacks.containsKey(eventName)) return;
-    _callbacks[eventName]!.forEach((fn) => fn(data));
+    _callbacks[eventName]?.forEach((fn) => fn(data));
+    _onceCallbacks[eventName]?.retainWhere((fn) {
+      Future.sync(() => fn(data));
+      return false;
+    });
   }
 
   void _alertRawListeners(String data, {bool snoop = false}) {
