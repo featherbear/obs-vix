@@ -59,6 +59,7 @@ jobs:
       with:
         channel: master
     - run: flutter doctor -v
+    - run: flutter config --enable-windows-desktop
     - run: flutter pub get
     - run: flutter build -v windows
     - name: Pack applicaion
