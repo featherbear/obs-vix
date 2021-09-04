@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:obs_vix/NBox_funcs.dart';
 import 'package:obs_vix/OBSClient.dart';
+import 'package:obs_vix/StaticStates.dart';
 import 'package:obs_vix/VIXClient.dart';
 import 'package:obs_vix/PageViewWrapper.dart';
 import 'package:obs_vix/VIXState.dart';
@@ -82,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
               programSourceViewer.updateSource(data["scene-name"]);
             })
             ..addEventListener("PreviewSceneChanged", (data) {
+              if (!listeningToPreviewStateChanges) return;
               previewSourceViewer.updateSource(data["scene-name"]);
             });
         }
@@ -256,15 +258,18 @@ class _MyHomePageState extends State<MyHomePage> {
                           String? targetScene = readVIXState()["buttons"][idx];
                           if (targetScene == null) return;
 
+                          // When the program is changed, the preview updates to the old program - not what we want!
+                          // The "Swap Preview/Output Scenes After Transitioning" would fix this issue, but we want to keep this on like a normal vision mixer
                           String? oldPreviewScene = readVIXState()["activePreview"];
-                          client.request(command: "SetCurrentScene", params: {"scene-name": targetScene}).then((_) {
-                            // When the program is changed, the preview updates to the old program - not what we want!
-                            // The "Swap Preview/Output Scenes After Transitioning" would fix this issue, but we want to keep this on like a normal vision mixer
-                            if (oldPreviewScene != null)
-                              client.addEventListener("PreviewSceneChanged", (data) {
-                                client.request(command: "SetPreviewScene", params: {"scene-name": oldPreviewScene}).then((_) {});
-                              }, once: true);
-                          });
+                          if (oldPreviewScene != null) {
+                            listeningToPreviewStateChanges = false;
+                            client.addEventListener("PreviewSceneChanged", (data) {
+                              client.request(command: "SetPreviewScene", params: {"scene-name": oldPreviewScene});
+                              listeningToPreviewStateChanges = true;
+                            }, once: true);
+                          }
+
+                          client.request(command: "SetCurrentScene", params: {"scene-name": targetScene});
                         },
                       )),
 

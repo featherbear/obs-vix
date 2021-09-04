@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:obs_vix/NBox_funcs.dart';
 import 'package:obs_vix/OBSClient.dart';
+import 'package:obs_vix/StaticStates.dart';
 import 'package:obs_vix/VIXState.dart';
 
 class VIXClient extends OBSClient {
@@ -16,6 +17,7 @@ class VIXClient extends OBSClient {
         });
       })
       ..addEventListener("PreviewSceneChanged", (data) {
+        if (!listeningToPreviewStateChanges) return;
         updateVIXState((m) {
           m["activePreview"] = data["scene-name"];
         });
