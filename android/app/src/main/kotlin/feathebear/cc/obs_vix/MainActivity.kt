@@ -1,4 +1,4 @@
-package com.example.obs_vix
+package featherbear.cc.obs_vix
 
 import io.flutter.embedding.android.FlutterActivity
 
